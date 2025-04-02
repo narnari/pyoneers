@@ -1,0 +1,8 @@
+TEAM : PYONEERS
+PROJECT : TERRABLOOM
+
+MEMBER
+이나연
+정소연
+조정현
+Ali Zarq
