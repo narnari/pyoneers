@@ -26,6 +26,7 @@ tiles={}
 add_tile_mode = False # 땅 추가 모드 상태
 trash_count = [([0]*(WIDTH//64)) for height in range (HEIGHT//64)] #땅 위에 쓰레기의 갯수를 저장
 BUTTON_RECT = pygame.Rect(20, 20, 120, 40) # 버튼 위치/크기
+trash_tick = 0          #쓰레기 생성 틱
 # =======================================================
 
     # 타일 상태 False : 흐림, True 선명
@@ -134,7 +135,6 @@ def trash_generator(trash_gen_tick):
 
 # Main game loop
 def main():
-    trash_tick = 0
     init_game()
     load_assets()
     clock = pygame.time.Clock()
