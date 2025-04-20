@@ -1,7 +1,8 @@
 import sys
 import pygame
 from pygame.locals import QUIT
-
+import time
+import random
 # Define clolr
 WHITE=(255, 255, 255);
 BLACK=(0, 0, 0);
@@ -23,6 +24,7 @@ GRID_HEIGHT = HEIGHT // TILE_SIZE
 SCREEN = None
 tiles={}
 add_tile_mode = False # 땅 추가 모드 상태
+trash_count = [([0]*(WIDTH//64)) for height in range (HEIGHT//64)] #땅 위에 쓰레기의 갯수를 저장
 BUTTON_RECT = pygame.Rect(20, 20, 120, 40) # 버튼 위치/크기
 # =======================================================
 
@@ -48,9 +50,10 @@ def load_assets():
     # Load tile image
     tiles = {
         0: pygame.image.load("assets/background.png").convert_alpha(), # 배경 (민트)
-        1: pygame.image.load("assets/basicTile-1.png").convert_alpha(), # 땅 1 (초록)
-        2: pygame.image.load("assets/Basic Tile-1.png").convert_alpha(), # 땅 2 (연두)
-        3: pygame.image.load("assets/tree.png").convert_alpha() #나무
+        1: pygame.image.load("assets/tile1.png").convert_alpha(), # 땅 1 (초록)
+        2: pygame.image.load("assets/tile2.png").convert_alpha(), # 땅 2 (연두)
+        3: pygame.image.load("assets/tree.png").convert_alpha(), #나무
+        4: pygame.image.load("assets/trash.png").convert_alpha()    #쓰레기
     }
 
 # 타일 흐리게 복사
@@ -103,8 +106,35 @@ def handle_events():
                 if 0 <= tile_x < GRID_WIDTH and 0 <= tile_y < GRID_HEIGHT:
                     tile_map[tile_y][tile_x] = True  # 클릭한 타일을 선명하게
 
+# 일정 시간마다 랜덤위치에 쓰레기 배치 함수
+#is_trash: 타일에 쓰레기가 있는지 확인 (코드 위 글로벌변수에 넣어놨음음)
+#쓰레기는 한 타일에 최대 5개까지 쌓임, 많이 쌓일수록 (불이 더 빨리남)or(불 날 확률이 높아짐)
+def trash_generator(trash_gen_tick):
+    global trash_count
+    trash_gen_tick += 1
+    if (trash_gen_tick >= 20):
+        trash_gen_tick = 0
+        a = random.randint(0, (WIDTH//TILE_SIZE)-1)
+        b = random.randint(0, (HEIGHT//TILE_SIZE)-1)
+        while (trash_count[b][a] >= 5): #이미 쓰레기가 5개가 넘을경우 a, b 재조정정
+            #향후 while문 안에 열려있는 땅인지 닫혀있는 땅인지 확인하는 기능을 추가해야함.
+            #해결책 : 땅의 상태를 저장하는 리스트를 새로 만들어야함
+            #        예를들어, ground[1][2]가 0이면 열려있고 빈 땅, -1이면 잠긴 땅, 1이면 1렙나무 심긴 땅 등등
+            a = random.randint(0, (WIDTH//TILE_SIZE)-1)
+            b = random.randint(0, (HEIGHT//TILE_SIZE)-1)
+        SCREEN.blit(tiles[4], (a*TILE_SIZE, b*TILE_SIZE))
+        #위 코드는 쓰레기를 타일에 보이게하는 코드. 쓰레기 갯수에 따라 다른 이미지 띄우도록 나중에 바꿔야함.
+        #그리고 메인함수에서 while에서 draw_tilemap()이랑 같이 돌아가는데, 이때문에 쓰레기를 표시해도 바로 사라지게됨.
+        #해결책: trash_generator함수와 draw_tilemap함수 안에 SCREEN.blit으로 직접 이미지 복붙하지 않고
+        #       위에서 언급한대로 땅 상태를 저장하는 리스트를 새로 만들어서 땅 상태에 따라 다른 이미지(쓰레기 있는 땅, 쓰레기 없는 땅)을
+        #       main함수의 while문 안에서 출력하도록 하면 좋을듯!
+        trash_count[b][a] += 1
+    return trash_gen_tick
+
+
 # Main game loop
 def main():
+    trash_tick = 0
     init_game()
     load_assets()
     clock = pygame.time.Clock()
@@ -113,6 +143,7 @@ def main():
         SCREEN.fill((BLACK)) # Clear screen with black
         draw_tilemap() # Draw tile background
         draw_button()
+        trash_tick = trash_generator(trash_tick)
         pygame.display.update() # Refresh screen
         handle_events()
 
