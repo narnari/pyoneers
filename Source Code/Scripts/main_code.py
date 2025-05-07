@@ -11,10 +11,10 @@ GREEN=(0, 255, 0);
 BLUE=(0, 0, 255);
 
 # Screen settings
-WIDTH=1088 #1920 종료 메뉴 만들고 나면 화면 비율 이걸로 바꾸기
-HEIGHT=832 #1080
+WIDTH=1920
+HEIGHT=1080
 FPS=60
-TILE_SIZE = 64
+TILE_SIZE = 256
 
 # Grid screen
 GRID_WIDTH = WIDTH // TILE_SIZE
@@ -50,10 +50,9 @@ def load_assets():
     global tiles
     # Load tile image
     tiles = {
-        0: pygame.image.load("assets/background.png").convert_alpha(), # 배경 (민트)
-        1: pygame.image.load("assets/tile1.png").convert_alpha(), # 땅 1 (초록)
-        2: pygame.image.load("assets/tile2.png").convert_alpha(), # 땅 2 (연두)
-        3: pygame.image.load("assets/tree.png").convert_alpha(), #나무
+        1: pygame.image.load("assets/Tile04.png").convert_alpha(), # 땅 1 (열린 땅)
+        -1: pygame.image.load("assets/Tile03.png").convert_alpha(), # 땅 2 (잠긴 땅)
+        3: pygame.image.load("assets/Tree02&Shadow.png").convert_alpha(), #나무
         4: pygame.image.load("assets/trash.png").convert_alpha()    #쓰레기
     }
 
@@ -82,12 +81,6 @@ def draw_tilemap():
             tile = tiles[1] if tile_map[row][col] else faded_tile
             SCREEN.blit(tile, (x, y))
 
-# --- 버튼 그리기 ---
-def draw_button():
-    pygame.draw.rect(SCREEN, GREEN, BUTTON_RECT)
-    font = pygame.font.SysFont(None, 24)
-    text = font.render("땅 추가", True, BLACK)
-    SCREEN.blit(text, (BUTTON_RECT.x + 15, BUTTON_RECT.y + 10))
 
 # 이벤트 처리 함수
 def handle_events():
@@ -113,7 +106,7 @@ def handle_events():
 def trash_generator(trash_gen_tick):
     global trash_count
     trash_gen_tick += 1
-    if (trash_gen_tick >= 20):
+    if (trash_gen_tick >= 240):
         trash_gen_tick = 0
         a = random.randint(0, (WIDTH//TILE_SIZE)-1)
         b = random.randint(0, (HEIGHT//TILE_SIZE)-1)
@@ -133,8 +126,16 @@ def trash_generator(trash_gen_tick):
     return trash_gen_tick
 
 
+#쓰레기 그리는 함수
+def draw_trash():
+    for row in range(GRID_HEIGHT):
+        for col in range(GRID_WIDTH):
+            if trash_count[row][col] > 0:
+                SCREEN.blit(tiles[4], (col * TILE_SIZE, row * TILE_SIZE))
+
 # Main game loop
 def main():
+    global trash_tick
     init_game()
     load_assets()
     clock = pygame.time.Clock()
@@ -142,8 +143,8 @@ def main():
         clock.tick(FPS)
         SCREEN.fill((BLACK)) # Clear screen with black
         draw_tilemap() # Draw tile background
-        draw_button()
         trash_tick = trash_generator(trash_tick)
+        draw_trash()
         pygame.display.update() # Refresh screen
         handle_events()
 
