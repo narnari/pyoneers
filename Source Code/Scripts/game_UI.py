@@ -1,5 +1,6 @@
 import pygame, sys, ctypes
 from pygame.locals import QUIT
+from land_editor import toggle_mode, is_editing, open_tile
 
 ctypes.windll.user32.SetProcessDPIAware()
 
@@ -57,6 +58,7 @@ def load_assets():
             7: pygame.image.load("assets/back.png").convert_alpha()
         }
 
+        tiles[0] = pygame.transform.scale(tiles[0], (64, 64))
         tiles[1] = pygame.transform.scale(tiles[1], (64, 64))
         tiles[2] = pygame.transform.scale(tiles[2], (64, 64))
         tiles[3] = pygame.transform.scale(tiles[3], (64, 64))
@@ -103,6 +105,24 @@ class Button:
         if self.rect.collidepoint(pos):
             self.action()
 
+def create_buttons(screen):
+    tree_planting_button = Button((40, 300, 250, 250), lambda: go_to_tree_planting(screen), UIs[3])
+    back_button = Button((1735, 25, 150, 150), lambda: setattr(sys.modules[__name__], 'running', False), UIs[7])
+    shovel_button = Button((40, 600, 250, 250), toggle_mode, UIs[4])
+    return [tree_planting_button, back_button, shovel_button]
+
+def handle_events(buttons):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return "exit"
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # 모든 버튼에 대해 클릭 감지
+            for button in buttons:
+                button.check_click(event.pos)
+            if is_editing(): # 현재 '땅 열기 모드'
+                open_tile(tile_map, event.pos, TILE_SIZE) # 클릭된 타일 열기
+    return None
+
 def start_game():
     print("게임 시작!")
 
@@ -121,22 +141,15 @@ def main(screen):
     pygame.init()
     SCREEN = screen
     load_assets()
-
-    tree_planting_button = Button((40, 300, 250, 250), lambda: go_to_tree_planting(screen), UIs[3])
-    back_button = Button((1735, 25, 150, 150), lambda: setattr(sys.modules[__name__], 'running', False), UIs[7])
-
-    buttons = [tree_planting_button, back_button]
+    buttons = create_buttons(screen)
 
     global running
     running = True
     clock = pygame.time.Clock()
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return "exit"  # TitlePage에서 처리
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                for button in buttons:
-                    button.check_click(event.pos)
+        result = handle_events(buttons)
+        if result == "exit":
+            return result
 
         draw_game(screen)
         for button in buttons:
