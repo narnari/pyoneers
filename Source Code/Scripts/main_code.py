@@ -50,10 +50,10 @@ def load_assets():
     global tiles
     # Load tile image
     tiles = {
-        1: pygame.image.load("assets/Tile04.png").convert_alpha(), # 땅 1 (열린 땅)
-        -1: pygame.image.load("assets/Tile03.png").convert_alpha(), # 땅 2 (잠긴 땅)
-        3: pygame.image.load("assets/Tree02&Shadow.png").convert_alpha(), #나무
-        4: pygame.image.load("assets/trash.png").convert_alpha()    #쓰레기
+        1: pygame.image.load("../assets/Tile04.png").convert_alpha(), # 땅 1 (열린 땅)
+        -1: pygame.image.load("../assets/Tile03.png").convert_alpha(), # 땅 2 (잠긴 땅)
+        3: pygame.image.load("../assets/Tree02&Shadow.png").convert_alpha(), #나무
+        4: pygame.image.load("../assets/trash.png").convert_alpha()    #쓰레기
     }
 
 # 타일 흐리게 복사

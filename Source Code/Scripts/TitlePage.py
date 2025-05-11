@@ -20,7 +20,7 @@ GREEN = (57, 150, 82)
 state = "menu"
 
 #타이틀 이미지 불러오고 크기 조정, 위치 설정
-title = pygame.image.load("assets/Title.png")
+title = pygame.image.load("../assets/Title.png")
 title = pygame.transform.scale(title, (920, 460))
 title_rect = title.get_rect(center=(WIDTH // 2, 200))
 
@@ -31,7 +31,7 @@ class Button:
         self.text = text
         self.callback = callback
         self.rect.center = (x, y)
-        self.font = pygame.font.Font("fonts/Jalnan.ttf", font_size)
+        self.font = pygame.font.Font("../fonts/Jalnan.ttf", font_size)
 
     def draw(self, surface):
         center = self.rect.center
