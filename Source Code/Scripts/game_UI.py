@@ -1,8 +1,7 @@
 import pygame, sys, ctypes
 from pygame.locals import QUIT
 from land_editor import toggle_mode, is_editing, open_tile
-from TreePlanting import run_tree_planting
-
+from trash import generate_trash, TRASH_TEXT, draw_trash_count, draw_trash
 ctypes.windll.user32.SetProcessDPIAware()
 
 # Define color
@@ -22,12 +21,11 @@ SCREEN = None
 tiles = {}
 UIs = {}
 tile_map = [[False for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
+tick = 0
+trash_counts = 0
+is_trash_on_tile = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
 
-# Add with other global variables
-tree_map = [[False for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 
-tree_map = [[False for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
-TILE_SIZE = 64  # 
 
 # --- 중앙 3x3 타일만 선명하게 설정 ---
 center_x = GRID_WIDTH // 2
@@ -45,35 +43,24 @@ def get_transparent_tile(tile, alpha):
     copy_tile.set_alpha(alpha)
     return copy_tile
 
-
-def go_to_tree_planting(screen):
-    """Handle tree planting button click"""
-    result = run_tree_planting(screen, tile_map, TILE_SIZE)
-    if result:
-        row, col = result
-        tree_map[row][col] = True  # Mark position as having a tree
-        print(f"Tree planted at ({col}, {row})")
-    else:
-        print("Tree planting canceled")
-
 def load_assets():
     global tiles, UIs, initialized
     if not initialized:
         tiles = {
-            0: pygame.image.load("../assets/Tile03.png").convert_alpha(),
-            1: pygame.image.load("../assets/Tile04.png").convert_alpha(),
-            2: pygame.image.load("../assets/tree03.png").convert_alpha(),
-            3: pygame.image.load("../assets/trash.png").convert_alpha(),
+            0: pygame.image.load("assets/Tile03.png").convert_alpha(),
+            1: pygame.image.load("assets/Tile04.png").convert_alpha(),
+            2: pygame.image.load("assets/tree03.png").convert_alpha(),
+            3: pygame.image.load("assets/trash03.png").convert_alpha(),
         }
         UIs = {
-            0: pygame.image.load("../assets/UI1.png").convert_alpha(),
-            1: pygame.image.load("../assets/UI2.png").convert_alpha(),
-            2: pygame.image.load("../assets/UI3.png").convert_alpha(),
-            3: pygame.image.load("../assets/button1.png").convert_alpha(),
-            4: pygame.image.load("../assets/button2.png").convert_alpha(),
-            5: pygame.image.load("../assets/button3.png").convert_alpha(),
-            6: pygame.image.load("../assets/button4.png").convert_alpha(),
-            7: pygame.image.load("../assets/back.png").convert_alpha()
+            0: pygame.image.load("assets/UI1.png").convert_alpha(),
+            1: pygame.image.load("assets/UI2.png").convert_alpha(),
+            2: pygame.image.load("assets/UI3.png").convert_alpha(),
+            3: pygame.image.load("assets/button1.png").convert_alpha(),
+            4: pygame.image.load("assets/button2.png").convert_alpha(),
+            5: pygame.image.load("assets/button3.png").convert_alpha(),
+            6: pygame.image.load("assets/button4.png").convert_alpha(),
+            7: pygame.image.load("assets/back.png").convert_alpha()
         }
 
         tiles[0] = pygame.transform.scale(tiles[0], (64, 64))
@@ -90,8 +77,11 @@ def draw_game(screen):
     screen.fill(SKY)
     draw_tilemap(screen)
     draw_button(screen)
+    draw_trash_count(screen, trash_counts)
+    draw_trash(screen, tiles, is_trash_on_tile)
 
 def draw_tilemap(screen):
+    global tick
     faded_tile = get_transparent_tile(tiles[1], 100)
     for row in range(4, GRID_HEIGHT - 1):
         for col in range(5, GRID_WIDTH - 5):
@@ -99,10 +89,10 @@ def draw_tilemap(screen):
             y = row * TILE_SIZE
             tile = tiles[1] if tile_map[row][col] else faded_tile
             screen.blit(tile, (x, y))
-
-            # Draw tree if planted here
-            if tree_map[row][col]:
-                screen.blit(tiles[2], (x + TILE_SIZE//4, y+ TILE_SIZE//4))  # tiles[2] should be your tree image
+            
+    global tick
+    global trash_counts
+    tick, trash_counts = generate_trash(tick, screen, tiles, tile_map, trash_counts, is_trash_on_tile)
 
 def draw_button(screen):
     screen.blit(UIs[0], (50, 20))
@@ -128,11 +118,7 @@ class Button:
             self.action()
 
 def create_buttons(screen):
-    tree_planting_button = Button(
-        (40, 300, 250, 250), 
-        lambda: go_to_tree_planting(screen),  # Modified to use our new function
-        UIs[3]
-    )
+    tree_planting_button = Button((40, 300, 250, 250), lambda: go_to_tree_planting(screen), UIs[3])
     back_button = Button((1735, 25, 150, 150), lambda: setattr(sys.modules[__name__], 'running', False), UIs[7])
     shovel_button = Button((40, 600, 250, 250), toggle_mode, UIs[4])
     return [tree_planting_button, back_button, shovel_button]
@@ -149,23 +135,12 @@ def handle_events(buttons):
                 open_tile(tile_map, event.pos, TILE_SIZE) # 클릭된 타일 열기
     return None
 
-
-
 def start_game():
     print("게임 시작!")
 
 def go_to_tree_planting(screen):
-    """Handle tree planting button click"""
-    result = run_tree_planting(screen, tile_map, TILE_SIZE)
-    if result:
-        row, col = result
-        tree_map[row][col] = True
-        print(f"Tree planted at ({col}, {row})")
-        # Force immediate redraw
-        draw_game(screen)
-        pygame.display.flip()
-    else:
-        print("Tree planting canceled")
+    import TreePlanting
+    TreePlanting.run_tree_planting(screen)
 
 #뒤로가기
 def go_to_title():
@@ -179,7 +154,6 @@ def main(screen):
     SCREEN = screen
     load_assets()
     buttons = create_buttons(screen)
-
     global running
     running = True
     clock = pygame.time.Clock()
