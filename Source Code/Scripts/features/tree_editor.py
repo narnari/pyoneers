@@ -1,47 +1,37 @@
 # tree_plot_plant.py
 import pygame
+from Scripts.features import tilemap_drawer
+from Scripts.screens import game_screen
+from Scripts.utils import assets, config
 
-TREE_BUTTON_SIZE = 200
-TREE_MARGIN = 50
-TREE_IMAGES = [
-    "assets/Tree1.png",
-    "assets/Tree2.png",
-    "assets/Tree3.png",
-    "assets/Tree4.png",
-]
+planting_mode = False
 
-def run_tree_planting(screen):
-    pygame.init()
-    clock = pygame.time.Clock()
-    font = pygame.font.SysFont(None, 48)
+EDITING_TEXT = None
 
-    tree_images = [pygame.transform.scale(pygame.image.load(img), (TREE_BUTTON_SIZE, TREE_BUTTON_SIZE)) for img in TREE_IMAGES]
+def plant_tree(tile_map, tile_objects, mouse_pos, tile_size, selected_tree_index):
+    """ 실제 나무를 심는 함수 """
+    global planting_mode
+    if not planting_mode:
+        return
 
-    buttons = []
-    start_x = (screen.get_width() - ((TREE_BUTTON_SIZE + TREE_MARGIN) * len(tree_images) - TREE_MARGIN)) // 2
-    y = (screen.get_height() - TREE_BUTTON_SIZE) // 2
-    for i, img in enumerate(tree_images):
-        rect = pygame.Rect(start_x + i * (TREE_BUTTON_SIZE + TREE_MARGIN), y, TREE_BUTTON_SIZE, TREE_BUTTON_SIZE)
-        buttons.append((rect, img, i))
+    col = mouse_pos[0] // tile_size
+    row = mouse_pos[1] // tile_size
 
-    selected_tree = None
-    running = True
-    while running:
-        screen.fill((200, 255, 200))
-        title = font.render("Choose a tree to plant", True, (0, 100, 0))
-        screen.blit(title, ((screen.get_width() - title.get_width()) // 2, 50))
+    if 4 <= row < config.GRID_HEIGHT-1 and 5 <= col < config.GRID_WIDTH-5: # 타일 열려있고, 오브젝트 없으면
+        if tile_map[row][col] and tile_objects[row][col] == 0:
+            tile_objects[row][col] = selected_tree_index + 3
+            planting_mode = False
 
-        for rect, img, _ in buttons:
-            screen.blit(img, rect)
 
-        pygame.display.flip()
+# 나무 심는 모드 인지 화면에 그림
+def draw_editing_text(screen):
+    global EDITING_TEXT
+    if not planting_mode:
+        return
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return "exit", None
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                for rect, _, tree_index in buttons:
-                    if rect.collidepoint(event.pos):
-                        return "plant_tree", tree_index
+    # pygame 초기화 이후에 폰트 로딩
+    if EDITING_TEXT is None:
+        EDITING_TEXT = assets.load_font("Jalnan.ttf", 38)
 
-        clock.tick(60)
+    text = EDITING_TEXT.render("나무 심는 중!", True, config.BLACK)
+    screen.blit(text, (1680, 1000))
