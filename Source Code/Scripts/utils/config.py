@@ -15,8 +15,9 @@ TILE_SIZE = 64
 GRID_WIDTH = WIDTH // TILE_SIZE
 GRID_HEIGHT = HEIGHT // TILE_SIZE
 
-TRASH_TICK_INTERVAL = 100
+TRASH_TICK_INTERVAL = 300
 SELECTED_TREE = None # 나무 심을 때, 선택된 나무 이름
+SELECTED_TREE_INDEX = None # 선택된 나무 인덱스 (3~6)
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
