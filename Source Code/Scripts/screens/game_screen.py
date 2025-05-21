@@ -12,7 +12,8 @@ tile_map = [[False for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID
 tick = 0
 trash_counts = 0
 is_trash_on_tile = [[0 for _ in range(config.WIDTH)] for _ in range(config.HEIGHT)]
-
+is_manual_open, manual_img = False, None
+initialized, running = False, False
 
 # --- 중앙 3x3 타일만 선명하게 설정 ---
 center_x = config.GRID_WIDTH // 2
@@ -48,18 +49,21 @@ def load_assets():
             "shovel_button": assets.load_image("button2.png", (250, 250)),
             "manual_button": assets.load_image("button3.png"),
             "setting_button": assets.load_image("button4.png"),
-            "back": assets.load_image("back.png", (150, 150))
+            "back": assets.load_image("back.png", (150, 150)),
+            "manual": assets.load_image("manual_screen.png", (config.WIDTH, config.HEIGHT))
         }
         initialized = True
 
-# 게임 전체 화면 그리기기
+# 게임 전체 화면 그리기
 def draw_game(screen):
     screen.fill(config.SKY)
-    draw_tilemap(screen)
-    draw_button(screen)
-    trash_editor.draw_trash_count(screen, trash_counts)
-    trash_editor.draw_trash(screen, tiles, is_trash_on_tile)
-
+    if is_manual_open:
+        screen.blit(UIs["manual"], (0, 0))
+    else:
+        draw_tilemap(screen)
+        draw_button(screen)
+        trash_editor.draw_trash_count(screen, trash_counts)
+        trash_editor.draw_trash(screen, tiles, is_trash_on_tile)
 
 def draw_tilemap(screen):
     faded_tile = get_transparent_tile(tiles["tile"], 100)
@@ -98,9 +102,10 @@ class Button:
 
 def create_buttons(screen):
     tree_planting_button = Button((40, 300, 250, 250), lambda: go_to_tree_planting(screen), UIs["tree_button"])
-    back_button = Button((1735, 25, 150, 150), lambda: setattr(sys.modules[__name__], 'running', False), UIs["back"])
+    back_button = Button((1735, 25, 150, 150), handle_back_button, UIs["back"])
     shovel_button = Button((40, 600, 250, 250), land_editor.toggle_mode, UIs["shovel_button"])
-    return [tree_planting_button, back_button, shovel_button]
+    manual_button = Button((1325, 19, 250, 250), lambda: open_manual(), UIs["manual_button"])
+    return [tree_planting_button, back_button, shovel_button, manual_button]
 
 def handle_events(buttons):
     for event in pygame.event.get():
@@ -117,6 +122,17 @@ def go_to_tree_planting(screen):
     import Scripts.screens.tree_planting_screen as tree_planting_screen
     tree_planting_screen.run_tree_planting(screen)
 
+def open_manual():
+    global is_manual_open
+    is_manual_open = True
+
+def handle_back_button():
+    global is_manual_open, running
+    if is_manual_open:
+        is_manual_open = False
+    else:
+        running = False
+
 def run_game(screen):
     global running
     running = True
@@ -131,6 +147,8 @@ def run_game(screen):
 
         draw_game(screen)
         for button in buttons:
+            if is_manual_open and button.action != handle_back_button:
+                continue
             button.draw(screen)
         pygame.display.flip()
         clock.tick(60)
