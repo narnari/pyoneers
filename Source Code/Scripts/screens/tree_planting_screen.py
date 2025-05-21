@@ -1,9 +1,14 @@
 import pygame
-import sys
 import ctypes
+from Scripts.screens import game_screen
+from Scripts.features import tree_editor, tilemap_drawer
 from Scripts.utils import assets, config
 ctypes.windll.user32.SetProcessDPIAware()
 pygame.init()
+
+
+result = None
+running = True
 
 # 나무 정보
 trees = [
@@ -13,16 +18,20 @@ trees = [
     {"name": "상수리나무", "increase": 50},
 ]
 
-# 에셋 불러오기
-images = {
-    "manual_button": assets.load_image("button3.png"),
-    "setting_button": assets.load_image("button4.png"),
-    "ui1" : assets.load_image("UI1.png"),
-    "ui2" : assets.load_image("UI2.png"),
-    "back" : assets.load_image("back.png", (150, 150))
-}
+images = {}
+trees_image = {}
+def load_tree_planting_assets():
+    global images, trees_image
+    # 에셋 불러오기
+    images = {
+        "manual_button": assets.load_image("button3.png"),
+        "setting_button": assets.load_image("button4.png"),
+        "ui1" : assets.load_image("UI1.png"),
+        "ui2" : assets.load_image("UI2.png"),
+        "back" : assets.load_image("back.png", (150, 150))
+    }
 
-trees_image = [((assets.load_image(f"Tree{i+1}.png", (180, 180)))) for i in range(4)]
+    trees_image = [((assets.load_image(f"Tree{i+1}.png", (180, 180)))) for i in range(4)]
 
 FONT = assets.load_font("Jalnan.ttf", 50)
 BUTTON_FONT = assets.load_font("Jalnan.ttf", 38)
@@ -87,15 +96,11 @@ def draw_tree_card(screen, x, y, tree, button, image):
     # "심기" 버튼을 그린다. 버튼의 구현은 별도로 한다.
     button.draw(screen)
 
-# 콜백 함수
-def plant_tree(name): 
-    print(f"{name}를 선택!")
-    config.SELECTED_TREE = name
-
 def on_info(): print("매뉴얼 버튼 클릭됨")
 def on_settings(): print("설정 버튼 클릭됨")
 
 def run_tree_planting(screen):
+    load_tree_planting_assets() # 이미지 파일 로드 먼저
     CARD_WIDTH, CARD_HEIGHT, CARD_MARGIN = 430, 650, 40
     CARD_Y = 350
     total_width = 4 * CARD_WIDTH + 3 * CARD_MARGIN
@@ -106,17 +111,30 @@ def run_tree_planting(screen):
     tree_planting_button = [
         CardButton(
             (positions[i] + (CARD_WIDTH - 200) / 2, CARD_Y + CARD_HEIGHT - 120, 200, 70),
-            "심기", lambda t=tree["name"]: plant_tree(t)
+            "심기", lambda t=tree["name"]: select_tree(t)
         ) for i, tree in enumerate(trees)
     ]
-
     result = None
     running = True
-
+        
     def set_exit(value):
         nonlocal running, result
         result = value
         running = False
+
+    # 콜백 함수
+    def select_tree(name): 
+        print(f"{name}를 선택!")
+        tree_editor.planting_mode = True
+        config.SELECTED_TREE = name
+        
+        # trees 리스트에서 선택한 나무 이름의 인덱스 저장
+        for i, tree in enumerate(trees):
+            if tree["name"] == name:
+                config.SELECTED_TREE_INDEX = i
+                break
+        tree_editor.plant_tree(tilemap_drawer.tile_map, tilemap_drawer.tile_objects, pygame.mouse.get_pos(), config.TILE_SIZE, config.SELECTED_TREE_INDEX)
+        set_exit("game")
 
     image_buttons = [
         ImageButton((1325, 19), images["manual_button"], on_info),
@@ -128,7 +146,6 @@ def run_tree_planting(screen):
 
     while running:
         screen.fill(config.SKY)
-
         # 카드 그리기
         for i, tree in enumerate(trees):
             draw_tree_card(screen, positions[i], CARD_Y, tree, tree_planting_button[i], trees_image[i])
