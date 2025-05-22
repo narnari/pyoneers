@@ -1,4 +1,4 @@
-import pygame
+import pygame, sys
 import ctypes
 from Scripts.screens import game_screen
 from Scripts.features import tree_editor, tilemap_drawer
@@ -6,9 +6,9 @@ from Scripts.utils import assets, config
 ctypes.windll.user32.SetProcessDPIAware()
 pygame.init()
 
-
-result = None
-running = True
+# 글로벌 상태 변수
+result = False
+is_manual_open = False
 
 # 나무 정보
 trees = [
@@ -21,67 +21,77 @@ trees = [
 images = {}
 trees_image = {}
 def load_tree_planting_assets():
-    global images, trees_image
+    global images, trees_image, result
     # 에셋 불러오기
     images = {
         "manual_button": assets.load_image("button3.png"),
         "setting_button": assets.load_image("button4.png"),
-        "ui1" : assets.load_image("UI1.png"),
-        "ui2" : assets.load_image("UI2.png"),
-        "back" : assets.load_image("back.png", (150, 150))
+        "ui1": assets.load_image("UI1.png"),
+        "ui2": assets.load_image("UI2.png"),
+        "back": assets.load_image("back.png", (150, 150)),
+        "tree_manual": assets.load_image("tree_manual_screen.png", (config.WIDTH, config.HEIGHT))
     }
-
-    trees_image = [((assets.load_image(f"Tree{i+1}.png", (180, 180)))) for i in range(4)]
+    trees_image = [assets.load_image(f"Tree{i+1}.png", (180, 180)) for i in range(4)]
+    result = True
 
 FONT = assets.load_font("Jalnan.ttf", 50)
 BUTTON_FONT = assets.load_font("Jalnan.ttf", 38)
 
 # 기본 버튼 클래스. rect는 버튼의 위치와 크기, callback은 실행할 함수
+# 기존에 있던 CardButton과 ButtonBase를 통합하였다.
 class ButtonBase:
-    def __init__(self, rect, callback):
-        # rect는 (x좌표, y좌표, 너비, 높이)를 담은 튜플.
+    def __init__(self, rect, callback, image=None, text=None):
         self.rect = pygame.Rect(rect)
-        self.callback = callback
-
-    def handle_event(self, event):
-        # 마우스 버튼을 눌렀고, 마우스를 누른 위치가 버튼 내부일 때
-        if event.type == pygame.MOUSEBUTTONDOWN and self.rect.collidepoint(event.pos):
-            self.callback()
-
-# 카드에 배치할 버튼. 기본 버튼 클래스를 상속받았다.
-class CardButton(ButtonBase):
-    def __init__(self, rect, text, callback):
-        # rect와 callback은 그대로 기본 버튼 클래스에서 처리하도록 함.
-        super().__init__(rect, callback)
+        self.action = callback
+        self.image = image
         self.text = text
 
-    # surface는 그림을 그릴 대상. 여기서는 화면이므로 screen
     def draw(self, surface):
-        # 초록색 직사각형을 그린다. 모서리는 둥글다.
-        pygame.draw.rect(surface, config.GREEN, self.rect, border_radius=10)
-        # 글자를 버튼으로 전환하고, 이때 안티 앨리어싱을 하며 색상은 하얀색이다. 그 후 글자가 버튼의 가운데에 오도록 위치를 계산한다.
-        text_image = BUTTON_FONT.render(self.text, True, config.WHITE)
-        text_place = text_image.get_rect(center=self.rect.center)
-        # 글자를 버튼 위에 그린다.
-        surface.blit(text_image, text_place)
+        if self.image:
+            surface.blit(self.image, self.rect)
+        elif self.text:
+            pygame.draw.rect(surface, config.GREEN, self.rect, border_radius=10)
+            text_surf = BUTTON_FONT.render(self.text, True, config.WHITE)
+            text_rect = text_surf.get_rect(center=self.rect.center)
+            surface.blit(text_surf, text_rect)
 
-# 이미지 버튼
-class ImageButton(ButtonBase):
-    def __init__(self, topleft, image, callback):
-        self.image = image
-        # 이미지의 왼쪽 위를 기준으로 좌표 설정
-        rect = self.image.get_rect(topleft=topleft)
-        # 버튼의 위치와 클릭했을 때 실행할 행동은 ButtonBase에 전달한다.
-        super().__init__(rect, callback)
+    def check_click(self, pos):
+        if self.rect.collidepoint(pos):
+            self.action()
 
-    # 지정된 위치에 그림 그리기
-    def draw(self, surface):
-        surface.blit(self.image, self.rect)
+def create_buttons(screen):
+    manual_button = ButtonBase((1325, 19, 150, 150), open_manual, images["manual_button"])
+    setting_button = ButtonBase((1525, 19, 150, 150), open_settings, images["setting_button"])
+    back_button = ButtonBase((1735, 25, 150, 150), handle_back_button, images["back"])
+    return [back_button, setting_button, manual_button]
+
+def draw_button(screen):
+    screen.fill(config.SKY)
+    if is_manual_open:
+        screen.blit(images["tree_manual"], (0, 0))
+    else:
+        screen.blit(images["ui1"], (50, 20))
+        screen.blit(images["ui2"], (675, 20))
+
+# UI 버튼 콜백
+def handle_back_button():
+    global is_manual_open, running
+    if is_manual_open:
+        is_manual_open = False
+    else:
+        running = False
+
+def open_manual():
+    global is_manual_open
+    is_manual_open = True
+
+def open_settings():
+    print("설정 버튼 클릭됨")
 
 # 카드 그리기 함수
 def draw_tree_card(screen, x, y, tree, button, image):
-    card_rect = pygame.Rect(x, y, 430, 650) # 카드의 너비와 높이는 고정
-    pygame.draw.rect(screen, config.LIGHTGREEN, card_rect, border_radius=20) # 연두색 직사각형을 그린다. 모서리는 둥글다.
+    card_rect = pygame.Rect(x, y, 430, 650)
+    pygame.draw.rect(screen, config.LIGHTGREEN, card_rect, border_radius=20)
 
     # 카드의 나무 이미지를 둘 장소를 찾는다. 그 장소에 초록색 원을 그리고 이미지도 그린다.
     card_center = (x + 215, y + 180)
@@ -96,11 +106,14 @@ def draw_tree_card(screen, x, y, tree, button, image):
     # "심기" 버튼을 그린다. 버튼의 구현은 별도로 한다.
     button.draw(screen)
 
-def on_info(): print("매뉴얼 버튼 클릭됨")
-def on_settings(): print("설정 버튼 클릭됨")
-
+# 메인 루프
 def run_tree_planting(screen):
-    load_tree_planting_assets() # 이미지 파일 로드 먼저
+    global running
+    running = True
+    clock = pygame.time.Clock()
+    load_tree_planting_assets()
+
+    # 나무 카드 위치 계산
     CARD_WIDTH, CARD_HEIGHT, CARD_MARGIN = 430, 650, 40
     CARD_Y = 350
     total_width = 4 * CARD_WIDTH + 3 * CARD_MARGIN
@@ -109,16 +122,16 @@ def run_tree_planting(screen):
 
     # 심기 버튼
     tree_planting_button = [
-        CardButton(
+        ButtonBase(
             (positions[i] + (CARD_WIDTH - 200) / 2, CARD_Y + CARD_HEIGHT - 120, 200, 70),
-            "심기", lambda t=tree["name"]: select_tree(t)
-        ) for i, tree in enumerate(trees)
+            lambda t=tree["name"]: select_tree(t),
+            text="심기"
+        )
+        for i, tree in enumerate(trees)
     ]
-    result = None
-    running = True
-        
+
     def set_exit(value):
-        nonlocal running, result
+        global running, result
         result = value
         running = False
 
@@ -136,35 +149,32 @@ def run_tree_planting(screen):
         tree_editor.plant_tree(tilemap_drawer.tile_map, tilemap_drawer.tile_objects, pygame.mouse.get_pos(), config.TILE_SIZE, config.SELECTED_TREE_INDEX)
         set_exit("game")
 
-    image_buttons = [
-        ImageButton((1325, 19), images["manual_button"], on_info),
-        ImageButton((1525, 19), images["setting_button"], on_settings),
-        ImageButton((1735, 25), images["back"], lambda: set_exit("game")),  # 나무 심는 화면에서 나가면 게임 화면
-    ]
-
-    clock = pygame.time.Clock()
-
+    ui_buttons = create_buttons(screen)
     while running:
         screen.fill(config.SKY)
-        # 카드 그리기
-        for i, tree in enumerate(trees):
-            draw_tree_card(screen, positions[i], CARD_Y, tree, tree_planting_button[i], trees_image[i])
-
-        # UI 상단
-        screen.blit(images["ui1"], (50, 20))
-        screen.blit(images["ui2"], (675, 20))
-
-        # 버튼 그리기
-        for btn in image_buttons:
-            btn.draw(screen)
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return "exit"  # ← 종료는 main이 처리
-            for b in tree_planting_button + image_buttons:
-                b.handle_event(event)
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for btn in ui_buttons:
+                    if is_manual_open and btn.action != handle_back_button:
+                        continue
+                    btn.check_click(event.pos)
+                for btn in tree_planting_button:
+                    if not is_manual_open:
+                        btn.check_click(event.pos)
+
+        draw_button(screen)
+
+        if not is_manual_open:
+            for i, tree in enumerate(trees):
+                draw_tree_card(screen, positions[i], CARD_Y, tree, tree_planting_button[i], trees_image[i])
+
+        for btn in ui_buttons:
+            if is_manual_open and btn.action != handle_back_button:
+                continue
+            btn.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)
-
-    return result
