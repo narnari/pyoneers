@@ -9,6 +9,8 @@ ctypes.windll.user32.SetProcessDPIAware()
 SCREEN = None
 UIs = {}
 initialized = False
+is_manual_open, manual_img = False, None
+initialized, running = False, False
 
 # 에셋 불러오기
 def load_assets():
@@ -22,19 +24,23 @@ def load_assets():
             "shovel_button": assets.load_image("button2.png", (250, 250)),
             "manual_button": assets.load_image("button3.png"),
             "setting_button": assets.load_image("button4.png"),
-            "back": assets.load_image("back.png", (150, 150))
+            "back": assets.load_image("back.png", (150, 150)),
+            "manual": assets.load_image("manual_screen.png", (config.WIDTH, config.HEIGHT))
         }
         initialized = True
 
 # 게임 전체 화면 그리기
 def draw_game(screen):
     screen.fill(config.SKY)
-    draw_button(screen)
-    tilemap_drawer.draw_tilemap(screen)
-    trash_editor.draw_trash_count(screen, trash_editor.trash_count)
-    land_editor.draw_editing_text(screen)
-    tree_editor.draw_editing_text(screen)
-    tilemap_drawer.draw_tile_objects(screen, tilemap_drawer.tile_objects, tilemap_drawer.tiles)
+    if is_manual_open:
+        screen.blit(UIs["manual"], (0, 0))
+    else:
+        draw_button(screen)
+        tilemap_drawer.draw_tilemap(screen)
+        trash_editor.draw_trash_count(screen, trash_editor.trash_count)
+        land_editor.draw_editing_text(screen)
+        tree_editor.draw_editing_text(screen)
+        tilemap_drawer.draw_tile_objects(screen, tilemap_drawer.tile_objects, tilemap_drawer.tiles)
 
 # UI 버튼 그리기
 def draw_button(screen):
@@ -61,9 +67,10 @@ class Button:
 
 def create_buttons(screen):
     tree_planting_button = Button((40, 300, 250, 250), lambda: go_to_tree_planting(screen), UIs["tree_button"])
-    back_button = Button((1735, 25, 150, 150), lambda: setattr(sys.modules[__name__], 'running', False), UIs["back"])
+    back_button = Button((1735, 25, 150, 150), handle_back_button, UIs["back"])
     shovel_button = Button((40, 600, 250, 250), land_editor.toggle_mode, UIs["shovel_button"])
-    return [tree_planting_button, back_button, shovel_button]
+    manual_button = Button((1325, 19, 150, 150), lambda: open_manual(), UIs["manual_button"])
+    return [tree_planting_button, back_button, shovel_button, manual_button]
 
 def handle_events(buttons):
     for event in pygame.event.get():
@@ -75,17 +82,29 @@ def handle_events(buttons):
             # 땅 열기 모드 일 때
             if land_editor.is_editing():
                 land_editor.open_tile(tilemap_drawer.tile_map, event.pos, config.TILE_SIZE)
-            # 나무 심기 모드 일 때
+             # 나무 심기 모드 일 때
             elif tree_editor.planting_mode:
                 tree_editor.plant_tree(tilemap_drawer.tile_map, tilemap_drawer.tile_objects, event.pos, config.TILE_SIZE, config.SELECTED_TREE_INDEX)
     return None
+
+def open_manual():
+    global is_manual_open
+    is_manual_open = True
 
 def go_to_tree_planting(screen):
     import Scripts.screens.tree_planting_screen as tree_planting_screen
     tree_planting_screen.run_tree_planting(screen)
 
+def handle_back_button():
+    global is_manual_open, running
+    if is_manual_open:
+        is_manual_open = False
+    else:
+        running = False
+
 def run_game(screen):
-    global running
+    global running, SCREEN
+    SCREEN = screen
     running = True
     load_assets()
     tilemap_drawer.load_assets()
@@ -96,12 +115,12 @@ def run_game(screen):
         result = handle_events(buttons)
         if result == "exit":
             return "exit"
-        
         if result == "title":
             return "title"
-
         draw_game(screen)
         for button in buttons:
+            if is_manual_open and button.action != handle_back_button:
+                continue
             button.draw(screen)
         pygame.display.flip()
         clock.tick(60)
