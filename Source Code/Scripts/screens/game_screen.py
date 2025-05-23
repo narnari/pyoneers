@@ -1,7 +1,6 @@
 import pygame, sys, ctypes
 from pygame.locals import QUIT
-from Scripts.features import land_editor, trash_editor, tilemap_drawer, tree_editor
-from Scripts.screens import tree_planting_screen
+from Scripts.features import land_editor, trash_editor, tilemap_drawer, tree_editor, resource_manager
 from Scripts.utils import assets, config
 ctypes.windll.user32.SetProcessDPIAware()
 
@@ -37,6 +36,7 @@ def draw_game(screen):
     else:
         draw_button(screen)
         tilemap_drawer.draw_tilemap(screen)
+        resource_manager.draw_resources(screen)
         trash_editor.draw_trash_count(screen, trash_editor.trash_count)
         land_editor.draw_editing_text(screen)
         tree_editor.draw_editing_text(screen)
@@ -82,9 +82,11 @@ def handle_events(buttons):
             # 땅 열기 모드 일 때
             if land_editor.is_editing():
                 land_editor.open_tile(tilemap_drawer.tile_map, event.pos, config.TILE_SIZE)
-             # 나무 심기 모드 일 때
+                resource_manager.check_resource(tilemap_drawer.tile_objects)
+            # 나무 심기 모드 일 때
             elif tree_editor.planting_mode:
                 tree_editor.plant_tree(tilemap_drawer.tile_map, tilemap_drawer.tile_objects, event.pos, config.TILE_SIZE, config.SELECTED_TREE_INDEX)
+                resource_manager.check_resource(tilemap_drawer.tile_objects)
     return None
 
 def open_manual():
@@ -111,12 +113,15 @@ def run_game(screen):
     buttons = create_buttons(screen)
     clock = pygame.time.Clock()
 
+    resource_manager.check_resource(tilemap_drawer.tile_objects) # 자원 체크 함수 호출
+
     while running:
         result = handle_events(buttons)
         if result == "exit":
             return "exit"
         if result == "title":
             return "title"
+        resource_manager.update_resources()
         draw_game(screen)
         for button in buttons:
             if is_manual_open and button.action != handle_back_button:
