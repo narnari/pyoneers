@@ -10,6 +10,7 @@ UIs = {}
 initialized = False
 is_manual_open, manual_img = False, None
 initialized, running = False, False
+setting = False
 
 # 에셋 불러오기
 def load_assets():
@@ -71,7 +72,13 @@ def create_buttons(screen):
     back_button = Button((1735, 25, 150, 150), handle_back_button, UIs["back"])
     shovel_button = Button((40, 600, 250, 250), land_editor.toggle_mode, UIs["shovel_button"])
     manual_button = Button((1325, 19, 150, 150), lambda: open_manual(), UIs["manual_button"])
-    return [tree_planting_button, back_button, shovel_button, manual_button]
+    setting_button = Button((1525, 19, 150, 150), lambda: go_to_setting(), UIs["setting_button"])
+    return [tree_planting_button, back_button, shovel_button, manual_button, setting_button]
+
+def go_to_setting():
+    print("설정으로")
+    global setting
+    setting = True
 
 def handle_events(buttons):
     for event in pygame.event.get():
@@ -117,6 +124,7 @@ def run_game(screen):
     resource_manager.check_resource(tilemap_drawer.tile_objects) # 자원 체크 함수 호출
 
     while running:
+
         result = handle_events(buttons)
         if result == "exit":
             return "exit"
@@ -132,5 +140,10 @@ def run_game(screen):
         
         pygame.display.flip()
         clock.tick(60)
+        
+        global setting
+        if setting == True:
+            setting = False
+            return "setting"
 
     return "title"
