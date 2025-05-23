@@ -1,7 +1,6 @@
 import pygame, sys
 import ctypes
-from Scripts.screens import game_screen
-from Scripts.features import tree_editor, tilemap_drawer
+from Scripts.features import tree_editor, tilemap_drawer, resource_manager
 from Scripts.utils import assets, config
 ctypes.windll.user32.SetProcessDPIAware()
 pygame.init()
@@ -68,7 +67,7 @@ class ButtonBase:
 def create_buttons(screen):
     manual_button = ButtonBase((1325, 19, 150, 150), open_manual, images["manual_button"])
     setting_button = ButtonBase((1525, 19, 150, 150), open_settings, images["setting_button"])
-    back_button = ButtonBase((1735, 25, 150, 150), back_button, images["back"])
+    back_button = ButtonBase((1735, 25, 150, 150), handle_back_button, images["back"])
     return [back_button, setting_button, manual_button]
 
 # UI 이미지 + 배경 화면에 그리기
@@ -83,7 +82,7 @@ def draw_button(screen):
         screen.blit(images["ui2"], (675, 20))
 
 # 뒤로가기 버튼 기능 구현
-def back_button():
+def handle_back_button():
     global is_manual_open, running
     # 매뉴얼이 열려있는 상황에서는 뒤로가기가 매뉴얼 닫기
     if is_manual_open:
@@ -191,7 +190,7 @@ def run_tree_planting(screen):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # 매뉴얼이 열려 있을 땐 뒤로가기 버튼의 기능만 적용하고 다른 버튼의 기능은 무시한다.
                 for btn in ui_buttons:
-                    if is_manual_open and btn.action != back_button:
+                    if is_manual_open and btn.action != handle_back_button:
                         continue
                     btn.check_click(event.pos)
 
@@ -210,9 +209,13 @@ def run_tree_planting(screen):
 
         # 매뉴얼, 설정, 뒤로가기 버튼을 그린다. 매뉴얼이 열려 있을 땐 뒤로가기 버튼만 그리고 다른 버튼은 그리지 않는다다.
         for btn in ui_buttons:
-            if is_manual_open and btn.action != back_button:
+            if is_manual_open and btn.action != handle_back_button:
                 continue
             btn.draw(screen)
+
+        resource_manager.check_resource(tilemap_drawer.tile_objects)
+        resource_manager.update_resources()
+        resource_manager.draw_resources(screen)
 
         # 화면 1초에 60 프레임으로 유지지
         pygame.display.flip()
