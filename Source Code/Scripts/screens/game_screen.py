@@ -33,14 +33,15 @@ def draw_game(screen):
     screen.fill(config.SKY)
     if is_manual_open:
         screen.blit(UIs["manual"], (0, 0))
+        resource_manager.draw_resources(screen)
     else:
         draw_button(screen)
         tilemap_drawer.draw_tilemap(screen)
-        resource_manager.draw_resources(screen)
         trash_editor.draw_trash_count(screen, trash_editor.trash_count)
         land_editor.draw_editing_text(screen)
         tree_editor.draw_editing_text(screen)
         tilemap_drawer.draw_tile_objects(screen, tilemap_drawer.tile_objects, tilemap_drawer.tiles)
+        resource_manager.draw_resources(screen)
 
 # UI 버튼 그리기
 def draw_button(screen):
@@ -122,11 +123,13 @@ def run_game(screen):
         if result == "title":
             return "title"
         resource_manager.update_resources()
+        
         draw_game(screen)
         for button in buttons:
             if is_manual_open and button.action != handle_back_button:
                 continue
             button.draw(screen)
+        
         pygame.display.flip()
         clock.tick(60)
 
