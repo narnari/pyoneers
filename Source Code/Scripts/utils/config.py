@@ -4,6 +4,7 @@ SKY = (220, 245, 255)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (57, 150, 82)
+DARKGREEN = (4, 118, 39)
 LIGHTGREEN = (143, 217, 119)
 
 # Screen settings
