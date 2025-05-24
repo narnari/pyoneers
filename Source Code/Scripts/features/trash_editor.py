@@ -1,26 +1,17 @@
 """
 TitlePage.py, Game_UI에 맞춰 제작한 trash.py 파일
-
-[현재 구현 성공/실패 목록]
-쓰레기 생성(O)
-쓰레기 갯수 증가(O)
-쓰레기 출력(X)
-쓰레기 갯수 출력(O)
-
-game_UI 많이 편집해놔서 새로 커밋해야하는데 일단 game_UI는 커밋 안했음음
 """
 
 import pygame
 import random
+import time
 from Scripts.utils import assets, config
 pygame.init()
 #---------------Global Variable----------------------------
-#SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 trash_count = 0
 TRASH_TEXT = assets.load_font("Jalnan.ttf", 38)
-#is_trash_on_tile = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
 
-def generate_trash(trash_gen_tick, tile_objects, tile_map, trash_count):
+def generate_trash(trash_gen_tick, tile_objects, tile_map, trash_count, t_to_f):
     trash_gen_tick += 1
     if (trash_gen_tick >= config.TRASH_TICK_INTERVAL):
         trash_gen_tick = 0
@@ -37,7 +28,7 @@ def generate_trash(trash_gen_tick, tile_objects, tile_map, trash_count):
 
         tile_objects[b][a] = 1
         trash_count += 1
-        
+        t_to_f.append(config.Fire(b,a,time.time()))     #t_to_f 인덱스에 현재 좌표와 시간 append
     return trash_gen_tick, trash_count
 
 def is_full_trash(tile_objects, tile_map):

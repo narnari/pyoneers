@@ -13,8 +13,8 @@ tiles = {}
 tile_map = [[False for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
 tick = 0
 tile_objects = [[0 for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
-
-
+t_to_f = []     #trash to fire: 쓰레기에서 불로 발화하기 위해 사용. 쓰레기 생성 시 x좌표, y좌표, 생성시간을 Fire 클래스로 append.
+fspread = []    #fire spread: 불이 주변으로 번지게 하기 위해 사용. 불 생성시시 x좌표, y좌표, 생성 시간을 Fire 클래스로 append.
 # --- 중앙 3x3 타일만 선명하게 설정 ---
 center_x = config.GRID_WIDTH // 2
 center_y = config.GRID_HEIGHT // 2
@@ -51,7 +51,7 @@ def draw_tilemap(screen):
             screen.blit(tile, (x, y))
 
     global tick, trash_count
-    tick, trash_editor.trash_count = trash_editor.generate_trash(tick, tile_objects, tile_map, trash_editor.trash_count)
+    tick, trash_editor.trash_count = trash_editor.generate_trash(tick, tile_objects, tile_map, trash_editor.trash_count, t_to_f)
 
 def draw_tile_objects(screen, tile_objects, tiles):
     for row in range(4, config.GRID_HEIGHT-1):

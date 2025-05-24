@@ -16,6 +16,17 @@ TILE_SIZE = 64
 GRID_WIDTH = WIDTH // TILE_SIZE
 GRID_HEIGHT = HEIGHT // TILE_SIZE
 
+#타일 오프셋셋
+OFFSET_WIDTH = 5
+OFFSET_HEIGHT = 4
+
+#불 생성에 사용되는 클래스
+class Fire:
+    def __init__(self,x,y,tick):
+        self.x = x
+        self.y = y
+        self.tick = tick
+
 TRASH_TICK_INTERVAL = 300
 SELECTED_TREE = None # 나무 심을 때, 선택된 나무 이름
 SELECTED_TREE_INDEX = None # 선택된 나무 인덱스 (3~6)
