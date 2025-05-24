@@ -18,7 +18,7 @@ back_state = "title"
 # 슬라이더 위치 및 크기
 slider_x = config.WIDTH // 3
 slider_y = config.HEIGHT // 3
-slider_width = config.WIDTH // 3
+slider_width = config.WIDTH // 2.25
 slider_height = 50
 
 # 핸들(circle)의 상태
@@ -69,6 +69,9 @@ def run_setting(screen):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.rect.collidepoint(event.pos):
                     self.callback()
+                    
+    BGM_SOUND_TEXT = assets.load_font("Jalnan.ttf", 50)
+    text = BGM_SOUND_TEXT.render("BGM 크기", True, config.BLACK)
                     
     # 버튼 콜백 함수들
     def basic_setting(): 
@@ -157,6 +160,7 @@ def run_setting(screen):
             elif setting == "sound":
                 buttons[1].draw_lighting(screen)
                 # 슬라이더 그리기
+                screen.blit(text, (slider_x, slider_y - 90))
                 pygame.draw.rect(screen, config.GREEN, (slider_x, slider_y - slider_height // 2, slider_width, slider_height))
                 pygame.draw.circle(screen, config.WHITE, (handle_x, slider_y), handle_radius)
             elif setting == "etc":
