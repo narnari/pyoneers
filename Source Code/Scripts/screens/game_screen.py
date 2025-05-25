@@ -31,18 +31,21 @@ def load_assets():
 
 # 게임 전체 화면 그리기
 def draw_game(screen):
+    # 마우스 커서 상태 업데이트
+    pygame.mouse.set_visible(not tree_editor.planting_mode)
     screen.fill(config.SKY)
     if is_manual_open:
         screen.blit(UIs["manual"], (0, 0))
         resource_manager.draw_resources(screen)
     else:
         draw_button(screen)
-        tilemap_drawer.draw_tilemap(screen)
-        trash_editor.draw_trash_count(screen, trash_editor.trash_count)
-        land_editor.draw_editing_text(screen)
-        tree_editor.draw_editing_text(screen)
-        tilemap_drawer.draw_tile_objects(screen, tilemap_drawer.tile_objects, tilemap_drawer.tiles)
-        resource_manager.draw_resources(screen)
+        tilemap_drawer.draw_tilemap(screen) # 타일 맵 그리기
+        trash_editor.draw_trash_count(screen, trash_editor.trash_count) # 쓰레기 개수 출력
+        land_editor.draw_editing_text(screen) # 땅 확장 기능 사용중인지 출력
+        tree_editor.draw_editing_text(screen) # 나무 심기 기능 사용중인지 출력
+        tree_editor.draw_tree_preview(screen) # 나무 심기 전 투명하게 보이도록
+        tilemap_drawer.draw_tile_objects(screen, tilemap_drawer.tile_objects, tilemap_drawer.tiles) # 타일 맵 위 오브젝트 그리기
+        resource_manager.draw_resources(screen) # 재화 보유량 및 생산략 출력
 
 # UI 버튼 그리기
 def draw_button(screen):
