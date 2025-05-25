@@ -28,7 +28,7 @@ def generate_trash(trash_gen_tick, tile_objects, tile_map, trash_count, t_to_f):
 
         tile_objects[b][a] = 1
         trash_count += 1
-        t_to_f.append(config.Fire(b,a,time.time()))     #t_to_f 인덱스에 현재 좌표와 시간 append
+        t_to_f.append(config.Fire(a,b,time.time()))     #t_to_f 인덱스에 현재 좌표와 시간 append
     return trash_gen_tick, trash_count
 
 def is_full_trash(tile_objects, tile_map):

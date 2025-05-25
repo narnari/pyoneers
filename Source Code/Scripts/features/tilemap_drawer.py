@@ -1,6 +1,6 @@
 import pygame, sys, ctypes
 from pygame.locals import QUIT
-from Scripts.features import land_editor, trash_editor, tree_editor
+from Scripts.features import land_editor, trash_editor, tree_editor, fire_editor
 from Scripts.utils import assets, config
 ctypes.windll.user32.SetProcessDPIAware()
 """
@@ -15,6 +15,7 @@ tick = 0
 tile_objects = [[0 for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
 t_to_f = []     #trash to fire: 쓰레기에서 불로 발화하기 위해 사용. 쓰레기 생성 시 x좌표, y좌표, 생성시간을 Fire 클래스로 append.
 fspread = []    #fire spread: 불이 주변으로 번지게 하기 위해 사용. 불 생성시시 x좌표, y좌표, 생성 시간을 Fire 클래스로 append.
+
 # --- 중앙 3x3 타일만 선명하게 설정 ---
 center_x = config.GRID_WIDTH // 2
 center_y = config.GRID_HEIGHT // 2
@@ -28,6 +29,7 @@ def load_assets():
     if not initialized:
         tiles = {
             "tile": assets.load_image("Tile04.png", (64, 64)),
+            "fire": assets.load_image("fire01.png",(64,64)),
             "tile_tree1": assets.load_image("Tree1Plant.png",(64, 64)),
             "tile_tree2": assets.load_image("Tree2Plant.png", (64, 64)),
             "tile_tree3": assets.load_image("Tree3Plant.png", (64, 64)),
@@ -52,6 +54,8 @@ def draw_tilemap(screen):
 
     global tick, trash_count
     tick, trash_editor.trash_count = trash_editor.generate_trash(tick, tile_objects, tile_map, trash_editor.trash_count, t_to_f)
+    fire_editor.control_fire(t_to_f, fspread, tile_objects, tile_map)
+
 
 def draw_tile_objects(screen, tile_objects, tiles):
     for row in range(4, config.GRID_HEIGHT-1):
