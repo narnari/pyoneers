@@ -35,3 +35,26 @@ def draw_editing_text(screen):
 
     text = EDITING_TEXT.render("나무 심는 중!", True, config.BLACK)
     screen.blit(text, (1680, 1000))
+
+# 흐릿한 이미지 만들기
+def get_transparent_image(image, alpha=120):
+    transparent = image.copy()
+    transparent.set_alpha(alpha)
+    return transparent
+
+# 마우스 따라다니는 나무 미리보기
+def draw_tree_preview(screen):
+    if not planting_mode or config.SELECTED_TREE_INDEX is None:
+        return
+
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+
+    try:
+        # 기존 tiles 딕셔너리 키는 "tile_tree1" ~ "tile_tree4"
+        key = f"tile_tree{config.SELECTED_TREE_INDEX + 1}"
+        tile_image = tilemap_drawer.tiles[key]
+
+        preview_img = get_transparent_image(tile_image, alpha=150)
+        screen.blit(preview_img, preview_img.get_rect(center=(mouse_x, mouse_y)))
+    except KeyError:
+        pass  # 이미지 없으면 안 그림
