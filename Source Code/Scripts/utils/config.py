@@ -27,6 +27,9 @@ class Fire:
         self.y = y
         self.tick = tick
 
+IGNITION_SEC = 1800 # 쓰레기에서 불로 점화하는데 걸리는 시간(초)
+SPREAD_SEC = 600 # 불이 퍼지는데 걸리는 시간(초)
+
 TRASH_TICK_INTERVAL = 300
 SELECTED_TREE = None # 나무 심을 때, 선택된 나무 이름
 SELECTED_TREE_INDEX = None # 선택된 나무 인덱스 (3~6)
