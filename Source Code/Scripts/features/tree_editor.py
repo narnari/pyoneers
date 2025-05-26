@@ -1,7 +1,6 @@
 # tree_plot_plant.py
 import pygame
-from Scripts.features import tilemap_drawer
-from Scripts.screens import game_screen
+from Scripts.features import tilemap_drawer, resource_manager
 from Scripts.utils import assets, config
 
 planting_mode = False
@@ -16,11 +15,22 @@ def plant_tree(tile_map, tile_objects, mouse_pos, tile_size, selected_tree_index
 
     col = mouse_pos[0] // tile_size
     row = mouse_pos[1] // tile_size
-
+    tree_index = selected_tree_index + 3 # 실제 나무 인덱스 (3~6)
+    resource_manager.check_resource(tile_objects) # 심기 전 tree_counts 갱신
+    cost = resource_manager.get_tree_cost(tree_index)
     if 4 <= row < config.GRID_HEIGHT-1 and 5 <= col < config.GRID_WIDTH-5: # 타일 열려있고, 오브젝트 없으면
         if tile_map[row][col] and tile_objects[row][col] == 0:
-            tile_objects[row][col] = selected_tree_index + 3
-            planting_mode = False
+            # 자원이 충분해야만 심기
+            if not resource_manager.can_spend(money=cost):
+                print("돈 부족! 나무 못 심음!")
+                planting_mode = False  # 심기 실패 시 모드 종료
+                return
+
+            # 심기 성공
+            tile_objects[row][col] = tree_index 
+            resource_manager.check_resource(tile_objects)
+            planting_mode = False  # 심기 후 모드 종료
+            print(f"{resource_manager.get_tree_name(tree_index)} 심음! 비용 {cost}원 차감됨!")
 
 
 # 나무 심는 모드 인지 화면에 그림
