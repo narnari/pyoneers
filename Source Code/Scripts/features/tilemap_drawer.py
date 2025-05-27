@@ -19,12 +19,7 @@ fspread = []    #fire spread: 불이 주변으로 번지게 하기 위해 사용
 HOFF = config.OFFSET_HEIGHT
 WOFF = config.OFFSET_WIDTH
 
-"""# --- 중앙 3x3 타일만 선명하게 설정 ---
-center_x = config.GRID_WIDTH // 2
-center_y = config.GRID_HEIGHT // 2
-for row in range(center_y, center_y + 3):
-    for col in range(center_x - 1, center_x + 2):
-        tile_map[row][col] = True"""
+
 
 #세이브 파일에서 돈, 산소, 땅 열림 유무, 오브젝트 ID 불러옴
 map_temp, object_temp = save_editor.file_load_tile()
@@ -38,7 +33,7 @@ for row in range(config.HEIGHT_SIZE):
     for col in range(config.WIDTH_SIZE):
         if (object_temp[row][col] == 1):                                #쓰레기일 경우 카운트 올려주고, t_to_f에 어팬드
             trash_editor.trash_count = trash_editor.trash_on_load(trash_editor.trash_count, t_to_f, col + WOFF, row + HOFF)
-        if (object_temp[row][col] == 2):                                #불일경우 spread에 어팬드드
+        if (object_temp[row][col] == 2):                                #불일경우 fspread에 어팬드드
             fire_editor.fire_on_load(col+WOFF, row+HOFF, fspread, tile_map)
         tile_objects[row + HOFF][col + WOFF] = object_temp[row][col]    #나머진 걍 붙여넣어
 

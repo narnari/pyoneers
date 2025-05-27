@@ -35,7 +35,7 @@ def main():
                 state = "setting"
         elif state == "game":
             # 게임 루프 내에서 이 코드 추가 (예: while running 루프 안)
-            save_editor.autosave(resource_manager.resources["stored_money"], resource_manager.resources["stored_oxygen"], tilemap_drawer.tile_map, tilemap_drawer.tile_objects, config.AUTO_SAVE_INTERVAL)
+            save_editor.auto_save(resource_manager.resources["stored_money"], resource_manager.resources["stored_oxygen"], tilemap_drawer.tile_map, tilemap_drawer.tile_objects, config.AUTO_SAVE_INTERVAL)
             
             result = game_screen.run_game(screen)
             if result == "title":

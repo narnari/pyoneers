@@ -30,7 +30,7 @@ def open_tile(tile_map, mouse_pos, tile_size):
 
     # 범위 체크
     if 4 <= row < config.GRID_HEIGHT-1 and 5 <= col < config.GRID_WIDTH-5:
-        tile_map[row][col] = True  # 잠긴 땅 
+        tile_map[row][col] = 1  # 잠긴 땅 
         
 # 땅 열린 모드 인지 화면에 그림
 def draw_editing_text(screen):

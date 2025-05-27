@@ -18,7 +18,7 @@ def file_save(money, oxy, ground, objects):  # money, oxygen, ground를 각각 s
         f.write("\n")
         f.write(' '.join(flat_objects))
 
-def auto_save(money, oxy, ground, objects, interval=300):
+def auto_save(money, oxy, ground, objects, interval):
     global last_save_time
     now = time.time()
     if now - last_save_time >= interval:
