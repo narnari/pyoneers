@@ -16,6 +16,8 @@ class State:
     back_to_title_requested = False # 타이틀 화면으로의 복귀 요청이 들어왔는지의 여부부
     popup_position = None # 팝업 위치 지정
     popup_buttons = [] # 팝업에 표시할 버튼 리스트
+    popup_type = "default"  # 팝업창에 사용할 이미지
+
 
 # 에셋 불러오기
 def load_assets():
@@ -30,7 +32,8 @@ def load_assets():
         "setting_button": assets.load_image("button4.png"),
         "back": assets.load_image("back.png", (150, 150)),
         "manual_screen": assets.load_image("manual_screen.png", (config.WIDTH, config.HEIGHT)),
-        "popup": assets.load_image("tree_upgrade_popup.png", (614, 326))
+        "popup1": assets.load_image("tree_upgrade_popup.png", (614, 326)),
+        "popup2": assets.load_image("tree_upgrade_popup2.png", (614, 326))
     })
 
 class Button:
@@ -65,10 +68,20 @@ def create_buttons(screen):
     ]
 
 def create_popup_buttons(popup_rect):
-    State.popup_buttons = [
-        Button((popup_rect.right + 20, popup_rect.bottom - 260, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
-        Button((popup_rect.right + 20, popup_rect.bottom - 148, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
-    ]
+    # 기본 버튼 위치: 오른쪽에 세로로 정렬
+    if State.popup_type == "popup2":
+        # 예시: sidns는 팝업 아래쪽에 가로로 배치
+        State.popup_buttons = [
+            Button((popup_rect.right + 20, popup_rect.bottom - 246, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
+            Button((popup_rect.right + 20, popup_rect.bottom - 134, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
+        ]
+    else:
+        # 기본 팝업: 오른쪽에 세로로 배치
+        State.popup_buttons = [
+            Button((popup_rect.right + 20, popup_rect.bottom - 260, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
+            Button((popup_rect.right + 20, popup_rect.bottom - 148, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
+        ]
+
 
 def draw_buttons(screen, buttons):
     for btn in buttons:
@@ -93,11 +106,16 @@ def draw_game(screen):
         resource_manager.draw_resources(screen) # 재화 보유량 및 생산략 출력
 
 def draw_popup(screen):
-    if State.is_manual_open == False:
-        if State.tree_upgrade_popup_requested and State.popup_position:
-            popup_rect = UIs["popup"].get_rect(topleft=State.popup_position)
-            screen.blit(UIs["popup"], popup_rect)
-            draw_buttons(screen, State.popup_buttons)
+    if not State.is_manual_open and State.tree_upgrade_popup_requested and State.popup_position:
+        if State.popup_type == "popup2":
+            popup_image = UIs["popup2"]
+        else:
+            popup_image = UIs["popup1"]
+
+        popup_rect = popup_image.get_rect(topleft=State.popup_position)
+        screen.blit(popup_image, popup_rect)
+        draw_buttons(screen, State.popup_buttons)
+
 
 def draw_UI(screen):
     screen.blit(UIs["ui1"], (50, 20))
@@ -130,10 +148,21 @@ def toggle_tree_popup(mouse_pos):
         close_tree_popup()
 
 def open_tree_popup(position):
+    if position[1] < 100:
+        # popup2용 위치 조정 (예: 아래로 100px 내림)
+        adjusted_position = (position[0], position[1] + 392)
+        popup_image = UIs["popup2"]
+    else:
+        adjusted_position = position
+        popup_image = UIs["popup1"]
+
     State.tree_upgrade_popup_requested = True
-    State.popup_position = position
-    popup_rect = UIs["popup"].get_rect(topleft=position)
+    State.popup_position = adjusted_position
+    State.popup_type = "popup2" if popup_image == UIs["popup2"] else "default"
+
+    popup_rect = popup_image.get_rect(topleft=adjusted_position)
     create_popup_buttons(popup_rect)
+
 
 def close_tree_popup():
     State.tree_upgrade_popup_requested = False
