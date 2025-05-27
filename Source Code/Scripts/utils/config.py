@@ -24,6 +24,8 @@ WIDTH_SIZE = 20
 OFFSET_WIDTH = 5
 OFFSET_HEIGHT = 4
 
+#자동저장 간격
+AUTO_SAVE_INTERVAL = 300
 #불 생성에 사용되는 클래스
 class Fire:
     def __init__(self,x,y,tick):
