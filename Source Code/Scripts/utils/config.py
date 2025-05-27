@@ -6,6 +6,8 @@ WHITE = (255, 255, 255)
 GREEN = (57, 150, 82)
 DARKGREEN = (4, 118, 39)
 LIGHTGREEN = (143, 217, 119)
+RED = (202, 102, 102)
+BLUE = (1, 122, 192)
 
 # Screen settings
 WIDTH = 1920

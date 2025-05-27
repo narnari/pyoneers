@@ -4,41 +4,86 @@ from Scripts.features import land_editor, trash_editor, tilemap_drawer, tree_edi
 from Scripts.utils import assets, config
 ctypes.windll.user32.SetProcessDPIAware()
 
-# ===================== 글로벌 변수 =====================
-SCREEN = None
 UIs = {}
-initialized = False
-is_manual_open, manual_img = False, None
-initialized, running = False, False
-setting = False
+BUTTON_FONT = assets.load_font("Jalnan.ttf", 28)
+
+# 글로벌 상태 변수. 코드의 전체적인 길이를 줄이기 위해 class로 선언하였다.
+class State:
+    running = False # 게임의 루프 실행 여부
+    tree_upgrade_popup_requested = False # 나무 업그레이드 팝업을 표시하는 상황인지의 여부
+    is_manual_open = False # 매뉴얼 화면을 여는 상황인지의 여부
+    setting_requested = False # 설정 화면을 열라는 요청이 들어왔는지의 여부
+    back_to_title_requested = False # 타이틀 화면으로의 복귀 요청이 들어왔는지의 여부부
+    popup_position = None # 팝업 위치 지정
+    popup_buttons = [] # 팝업에 표시할 버튼 리스트
 
 # 에셋 불러오기
 def load_assets():
-    global UIs, initialized
-    if not initialized:
-        UIs = {
-            "ui1": assets.load_image("UI1.png"),
-            "ui2": assets.load_image("UI2.png"),
-            "ui3": assets.load_image("UI3.png"),
-            "tree_button": assets.load_image("button1.png", (250, 250)),
-            "shovel_button": assets.load_image("button2.png", (250, 250)),
-            "manual_button": assets.load_image("button3.png"),
-            "setting_button": assets.load_image("button4.png"),
-            "back": assets.load_image("back.png", (150, 150)),
-            "manual": assets.load_image("manual_screen.png", (config.WIDTH, config.HEIGHT))
-        }
-        initialized = True
+    if UIs: return
+    UIs.update({
+        "ui1": assets.load_image("UI1.png"),
+        "ui2": assets.load_image("UI2.png"),
+        "ui3": assets.load_image("UI3.png"),
+        "tree_button": assets.load_image("button1.png", (250, 250)),
+        "shovel_button": assets.load_image("button2.png", (250, 250)),
+        "manual_button": assets.load_image("button3.png"),
+        "setting_button": assets.load_image("button4.png"),
+        "back": assets.load_image("back.png", (150, 150)),
+        "manual_screen": assets.load_image("manual_screen.png", (config.WIDTH, config.HEIGHT)),
+        "popup": assets.load_image("tree_upgrade_popup.png", (614, 326))
+    })
 
-# 게임 전체 화면 그리기
+class Button:
+    def __init__(self, rect, action, text=None, image=None, bg_color=config.GREEN, text_color=config.WHITE):
+        self.rect = pygame.Rect(rect)
+        self.action = action
+        self.text = text
+        self.image = image
+        self.bg_color = bg_color
+        self.text_color = text_color
+
+    def draw(self, surface):
+        if self.image:
+            surface.blit(self.image, self.rect.topleft)
+        elif self.text:
+            pygame.draw.rect(surface, self.bg_color, self.rect, border_radius=10)
+            pygame.draw.rect(surface, config.BLACK, self.rect, width=3, border_radius=10)
+            text_surf = BUTTON_FONT.render(self.text, True, self.text_color)
+            text_rect = text_surf.get_rect(center=self.rect.center)
+            surface.blit(text_surf, text_rect)
+
+    def check_click(self):
+        self.action()
+
+def create_buttons(screen):
+    return [
+        Button((40, 300, 250, 250), lambda: go_to_tree_planting(screen), image=UIs["tree_button"]),
+        Button((1735, 25, 150, 150), handle_back_button, image=UIs["back"]),
+        Button((40, 600, 250, 250), land_editor.toggle_mode, image=UIs["shovel_button"]),
+        Button((1325, 19, 150, 150), open_manual, image=UIs["manual_button"]),
+        Button((1525, 19, 150, 150), request_setting, image=UIs["setting_button"])
+    ]
+
+def create_popup_buttons(popup_rect):
+    State.popup_buttons = [
+        Button((popup_rect.right + 20, popup_rect.bottom - 260, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
+        Button((popup_rect.right + 20, popup_rect.bottom - 148, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
+    ]
+
+def draw_buttons(screen, buttons):
+    for btn in buttons:
+        btn.draw(screen)
+
 def draw_game(screen):
-    # 마우스 커서 상태 업데이트
     pygame.mouse.set_visible(not tree_editor.planting_mode)
     screen.fill(config.SKY)
-    if is_manual_open:
-        screen.blit(UIs["manual"], (0, 0))
-        resource_manager.draw_resources(screen)
+
+    if State.is_manual_open:
+        screen.blit(UIs["manual_screen"], (0, 0))
+        return
+
     else:
-        draw_button(screen)
+        draw_UI(screen)
         tilemap_drawer.draw_tilemap(screen) # 타일 맵 그리기
         trash_editor.draw_trash_count(screen, trash_editor.trash_count) # 쓰레기 개수 출력
         land_editor.draw_editing_text(screen) # 땅 확장 기능 사용중인지 출력
@@ -47,106 +92,130 @@ def draw_game(screen):
         tilemap_drawer.draw_tile_objects(screen, tilemap_drawer.tile_objects, tilemap_drawer.tiles) # 타일 맵 위 오브젝트 그리기
         resource_manager.draw_resources(screen) # 재화 보유량 및 생산략 출력
 
-# UI 버튼 그리기
-def draw_button(screen):
+def draw_popup(screen):
+    if State.is_manual_open == False:
+        if State.tree_upgrade_popup_requested and State.popup_position:
+            popup_rect = UIs["popup"].get_rect(topleft=State.popup_position)
+            screen.blit(UIs["popup"], popup_rect)
+            draw_buttons(screen, State.popup_buttons)
+
+def draw_UI(screen):
     screen.blit(UIs["ui1"], (50, 20))
     screen.blit(UIs["ui2"], (675, 20))
     screen.blit(UIs["ui3"], (1650, 450))
-    screen.blit(UIs["shovel_button"], (40, 600))
-    screen.blit(UIs["manual_button"], (1325, 19))
-    screen.blit(UIs["setting_button"], (1525, 19))
 
-# 버튼 클래스
-class Button:
-    def __init__(self, rect, action, image):
-        self.rect = pygame.Rect(rect)
-        self.action = action
-        self.image = image
+def request_setting():
+    State.setting_requested = True
 
-    def draw(self, surface):
-        surface.blit(self.image, self.rect)
+def remove_tree_action():
+    print("제거 버튼 클릭됨")
 
-    def check_click(self, pos):
-        if self.rect.collidepoint(pos):
-            self.action()
+def upgrade_tree_action():
+    print("업그레이드 버튼 클릭됨")
 
-def create_buttons(screen):
-    tree_planting_button = Button((40, 300, 250, 250), lambda: go_to_tree_planting(screen), UIs["tree_button"])
-    back_button = Button((1735, 25, 150, 150), handle_back_button, UIs["back"])
-    shovel_button = Button((40, 600, 250, 250), land_editor.toggle_mode, UIs["shovel_button"])
-    manual_button = Button((1325, 19, 150, 150), lambda: open_manual(), UIs["manual_button"])
-    setting_button = Button((1525, 19, 150, 150), lambda: go_to_setting(), UIs["setting_button"])
-    return [tree_planting_button, back_button, shovel_button, manual_button, setting_button]
+def toggle_tree_popup(mouse_pos):
+    col, row = mouse_pos[0] // config.TILE_SIZE, mouse_pos[1] // config.TILE_SIZE
+    if not (0 <= row < config.GRID_HEIGHT and 0 <= col < config.GRID_WIDTH):
+        return
 
-def go_to_setting():
-    print("설정으로")
-    global setting
-    setting = True
+    tile_value = tilemap_drawer.tile_objects[row][col]
+    clicked_pos = (col * config.TILE_SIZE, row * config.TILE_SIZE - 330)
+
+    if tile_value >= 3:
+        if State.tree_upgrade_popup_requested and State.popup_position == clicked_pos:
+            close_tree_popup()
+        else:
+            open_tree_popup(clicked_pos)
+    else:
+        close_tree_popup()
+
+def open_tree_popup(position):
+    State.tree_upgrade_popup_requested = True
+    State.popup_position = position
+    popup_rect = UIs["popup"].get_rect(topleft=position)
+    create_popup_buttons(popup_rect)
+
+def close_tree_popup():
+    State.tree_upgrade_popup_requested = False
+    State.popup_position = None
+    State.popup_buttons.clear()
+
+def handle_mouse_click(pos, buttons):
+    # 버튼 클릭 우선
+    for btn in buttons:
+        if State.is_manual_open and btn.action != handle_back_button:
+            continue
+        if btn.rect.collidepoint(pos):
+            btn.check_click()
+            return
+
+    # 팝업 버튼
+    if State.tree_upgrade_popup_requested:
+        for btn in State.popup_buttons:
+            if btn.rect.collidepoint(pos):
+                btn.check_click()
+                return
+
+    toggle_tree_popup(pos)
+
+    if land_editor.is_editing():
+        land_editor.open_tile(tilemap_drawer.tile_map, pos, config.TILE_SIZE)
+        resource_manager.check_resource(tilemap_drawer.tile_objects)
+    elif tree_editor.planting_mode:
+        tree_editor.plant_tree(tilemap_drawer.tile_map, tilemap_drawer.tile_objects, pos, config.TILE_SIZE, config.SELECTED_TREE_INDEX)
+        resource_manager.check_resource(tilemap_drawer.tile_objects)
 
 def handle_events(buttons):
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == QUIT:
             return "exit"
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            for button in buttons:
-                button.check_click(event.pos)
-            # 땅 열기 모드 일 때
-            if land_editor.is_editing():
-                land_editor.open_tile(tilemap_drawer.tile_map, event.pos, config.TILE_SIZE)
-                resource_manager.check_resource(tilemap_drawer.tile_objects)
-            # 나무 심기 모드 일 때
-            elif tree_editor.planting_mode:
-                tree_editor.plant_tree(tilemap_drawer.tile_map, tilemap_drawer.tile_objects, event.pos, config.TILE_SIZE, config.SELECTED_TREE_INDEX)
-                resource_manager.check_resource(tilemap_drawer.tile_objects)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            handle_mouse_click(event.pos, buttons)
     return None
 
 def open_manual():
-    global is_manual_open
-    is_manual_open = True
+    State.is_manual_open = True
+
+def handle_back_button():
+    if State.is_manual_open:
+        State.is_manual_open = False
+    else:
+        State.back_to_title_requested = True
+        State.running = False
 
 def go_to_tree_planting(screen):
     import Scripts.screens.tree_planting_screen as tree_planting_screen
     tree_planting_screen.run_tree_planting(screen)
 
-def handle_back_button():
-    global is_manual_open, running
-    if is_manual_open:
-        is_manual_open = False
-    else:
-        running = False
-
 def run_game(screen):
-    global running, SCREEN
-    SCREEN = screen
-    running = True
+    State.running = True
     load_assets()
     tilemap_drawer.load_assets()
     buttons = create_buttons(screen)
     clock = pygame.time.Clock()
+    resource_manager.check_resource(tilemap_drawer.tile_objects)
 
-    resource_manager.check_resource(tilemap_drawer.tile_objects) # 자원 체크 함수 호출
-
-    while running:
-
+    while State.running:
         result = handle_events(buttons)
         if result == "exit":
             return "exit"
-        if result == "title":
-            return "title"
+
         resource_manager.update_resources()
-        
         draw_game(screen)
-        for button in buttons:
-            if is_manual_open and button.action != handle_back_button:
-                continue
-            button.draw(screen)
-        
+
+        # 매뉴얼 열려있으면 뒤로가기 버튼만, 아니면 전체 버튼 그리기
+        draw_buttons(screen, [btn for btn in buttons if State.is_manual_open and btn.action == handle_back_button] if State.is_manual_open else buttons)
+        draw_popup(screen)
         pygame.display.flip()
         clock.tick(60)
-        
-        global setting
-        if setting == True:
-            setting = False
+
+        if State.setting_requested:
+            State.setting_requested = False
             return "setting"
 
-    return "title"
+    # while 종료 후
+    if State.back_to_title_requested:
+        State.back_to_title_requested = False
+        return "title"
+
+    return None
