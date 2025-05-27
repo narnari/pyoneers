@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "Scripts"))
 
 from Scripts.screens import game_screen, title_screen, setting_screen
 from Scripts.utils import config, assets
+from Scripts.features import save_editor, resource_manager, tilemap_drawer
 
 def main():
     pygame.init()
@@ -27,11 +28,15 @@ def main():
             if result == "start":
                 state = "game"
             elif result == "exit":
+                save_editor.file_save(resource_manager.resources["stored_money"], resource_manager.resources["stored_oxygen"], tilemap_drawer.tile_map, tilemap_drawer.tile_objects)
                 running = False
             elif result == "setting":
                 setting_screen.back_state = "title"
                 state = "setting"
         elif state == "game":
+            # 게임 루프 내에서 이 코드 추가 (예: while running 루프 안)
+            save_editor.autosave(resource_manager.resources["stored_money"], resource_manager.resources["stored_oxygen"], tilemap_drawer.tile_map, tilemap_drawer.tile_objects, config.AUTO_SAVE_INTERVAL)
+            
             result = game_screen.run_game(screen)
             if result == "title":
                 state = "title"

@@ -1,4 +1,5 @@
 from Scripts.utils import config, assets
+from Scripts.features import save_editor
 import time
 import math
 
@@ -44,12 +45,10 @@ resources = {
     "produce_money": 0,
     "last_update_time": time.time()  # 마지막으로 보유량 업데이트한 시간
 }
-
+resources["stored_money"],resources["stored_oxygen"] = save_editor.file_load_resource()
 # 인덱스로 이름 얻기
 def get_tree_name(index):
     return TREE_NAME.get(index, "Unknown")
-
-
 # 나무 개수가 달라지니까 생산량 초기화하고 다시 계산
 def reset_income():
     resources["produce_oxygen"] = 0

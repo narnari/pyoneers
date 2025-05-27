@@ -11,6 +11,15 @@ pygame.init()
 trash_count = 0
 TRASH_TEXT = assets.load_font("Jalnan.ttf", 38)
 
+def trash_on_load(trash_count, t_to_f, x, y):
+     trash_count += 1
+     t_to_f.append(config.Fire(x,y,time.time()))
+     return trash_count
+
+def decrease_count_when_ignite(trash_count):
+     trash_count -= 1
+     return trash_count
+
 def generate_trash(trash_gen_tick, tile_objects, tile_map, trash_count, t_to_f):
     trash_gen_tick += 1
     if (trash_gen_tick >= config.TRASH_TICK_INTERVAL):
