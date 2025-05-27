@@ -1,0 +1,33 @@
+# Python 바이너리 캐시 파일
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 파이썬 환경 관련
+.env/
+.venv/
+*.env
+*.venv
+Pipfile.lock
+poetry.lock
+
+# Pygame - 자동 생성되는 파일 무시
+*.log
+
+# VSCode/IDE 관련 설정 파일 (원한다면 포함 제외 가능)
+.vscode/
+.idea/
+
+# OS 임시 파일
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 실행 결과물 및 빌드
+build/
+dist/
+*.exe
+*.app
+
+# 저장 파일 등 커밋하지 않을 개인 설정 파일
+About Game/*
