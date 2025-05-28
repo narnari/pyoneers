@@ -3,7 +3,6 @@ from Scripts.features import save_editor
 import time
 import math
 
-font = assets.load_font("Jalnan.ttf", 38)
 
 # 인덱스 ↔ 이름 매핑
 TREE_NAME = {
@@ -36,7 +35,7 @@ tree_counts = {
     5: 0,  # 자작나무
     6: 0   # 상수리나무
 }
-
+land_count=0
 
 resources = {
     "stored_oxygen": 50, # 기본 제공 50
@@ -101,6 +100,7 @@ def get_tree_cost(tree_index):
 
 
 def draw_resources(screen):
+    font = assets.load_font("Jalnan.ttf", 38)
     stored_oxy_text = font.render(f"{resources['stored_oxygen']} 개", True, config.BLACK)
     stored_money_text = font.render(f"{resources['stored_money']} 원", True, config.BLACK)
     produce_oxy_text = font.render(f"1초당 {resources['produce_oxygen']} 개", True, config.BLACK)
