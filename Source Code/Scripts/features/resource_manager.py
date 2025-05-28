@@ -35,7 +35,8 @@ tree_counts = {
     5: 0,  # 자작나무
     6: 0   # 상수리나무
 }
-land_count=0
+
+land_count = int(save_editor.file_load_ground_counts())
 
 resources = {
     "stored_oxygen": 50, # 기본 제공 50

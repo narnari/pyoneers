@@ -28,7 +28,7 @@ def main():
             if result == "start":
                 state = "game"
             elif result == "exit":
-                save_editor.file_save(resource_manager.resources["stored_money"], resource_manager.resources["stored_oxygen"], tilemap_drawer.tile_map, tilemap_drawer.tile_objects)
+                save_editor.file_save(resource_manager.resources["stored_money"], resource_manager.resources["stored_oxygen"], tilemap_drawer.tile_map, tilemap_drawer.tile_objects, resource_manager.land_count)
                 running = False
             elif result == "setting":
                 setting_screen.back_state = "title"
