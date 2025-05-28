@@ -211,26 +211,22 @@ def open_fire_popup(position):
     State.popup_position = position
     popup_rect = UIs["firepopup"].get_rect(topleft=position)
     create_fire_and_trash_buttons(popup_rect)
-    print("불팝업 켜짐")
 
 def close_fire_popup():
     State.fire_putout_popup_requested = False
     State.popup_position = None
     State.fire_and_trash_popup_buttons.clear()
-    print("불팝업 꺼짐")
     
 def open_trash_popup(position):
     State.trash_throwout_popup_requested = True
     State.popup_position = position
     popup_rect = UIs["trashpopup"].get_rect(topleft=position)
     create_fire_and_trash_buttons(popup_rect)
-    print("쓰레기팝업 켜짐")
 
 def close_trash_popup():
     State.trash_throwout_popup_requested = False
     State.popup_position = None
     State.fire_and_trash_popup_buttons.clear()
-    print("쓰레기팝업 꺼짐")
 
 def handle_mouse_click(pos, buttons):
     # 버튼 클릭 우선
