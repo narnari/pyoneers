@@ -11,11 +11,14 @@ BUTTON_FONT = assets.load_font("Jalnan.ttf", 28)
 class State:
     running = False # 게임의 루프 실행 여부
     tree_upgrade_popup_requested = False # 나무 업그레이드 팝업을 표시하는 상황인지의 여부
+    fire_putout_popup_requested = False # 불 끄기 팝업을 표시하는 상황인지의 여부
+    trash_throwout_popup_requested = False # 쓰레기 버리기 팝업을 표시하는 상황인지의 여부
     is_manual_open = False # 매뉴얼 화면을 여는 상황인지의 여부
     setting_requested = False # 설정 화면을 열라는 요청이 들어왔는지의 여부
     back_to_title_requested = False # 타이틀 화면으로의 복귀 요청이 들어왔는지의 여부부
     popup_position = None # 팝업 위치 지정
     popup_buttons = [] # 팝업에 표시할 버튼 리스트
+    fire_and_trash_popup_buttons = [] # 불 끄기 및 쓰레기 버리기 팝업에 표시할 버튼 리스트
     popup_type = "default"  # 팝업창에 사용할 이미지
 
 
@@ -33,7 +36,9 @@ def load_assets():
         "back": assets.load_image("back.png", (150, 150)),
         "manual_screen": assets.load_image("manual_screen.png", (config.WIDTH, config.HEIGHT)),
         "popup1": assets.load_image("tree_upgrade_popup.png", (614, 326)),
-        "popup2": assets.load_image("tree_upgrade_popup2.png", (614, 326))
+        "popup2": assets.load_image("tree_upgrade_popup2.png", (614, 326)),
+        "trashpopup": assets.load_image("trash_throwout_popup.png", (540, 207)),
+        "firepopup": assets.load_image("fire_putout_popup.png", (540, 207))
     })
 
 class Button:
@@ -81,6 +86,11 @@ def create_popup_buttons(popup_rect):
             Button((popup_rect.right + 20, popup_rect.bottom - 260, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
             Button((popup_rect.right + 20, popup_rect.bottom - 148, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
         ]
+def create_fire_and_trash_buttons(popup_rect):
+    State.fire_and_trash_popup_buttons = [
+        Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_tree_action, "제거", bg_color=config.BLUE),
+        Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), upgrade_tree_action, "취소", bg_color=config.RED)
+    ]
 
 
 def draw_buttons(screen, buttons):
@@ -106,15 +116,24 @@ def draw_game(screen):
         resource_manager.draw_resources(screen) # 재화 보유량 및 생산략 출력
 
 def draw_popup(screen):
-    if not State.is_manual_open and State.tree_upgrade_popup_requested and State.popup_position:
-        if State.popup_type == "popup2":
-            popup_image = UIs["popup2"]
-        else:
-            popup_image = UIs["popup1"]
-
-        popup_rect = popup_image.get_rect(topleft=State.popup_position)
-        screen.blit(popup_image, popup_rect)
-        draw_buttons(screen, State.popup_buttons)
+    if not State.is_manual_open:
+        if State.tree_upgrade_popup_requested and State.popup_position:
+            if State.popup_type == "popup2":
+                popup_image = UIs["popup2"]
+            else:
+                popup_image = UIs["popup1"]
+            popup_rect = popup_image.get_rect(topleft=State.popup_position)
+            screen.blit(popup_image, popup_rect)
+            draw_buttons(screen, State.popup_buttons)
+            
+        elif State.trash_throwout_popup_requested and State.fire_and_trash_popup_buttons:
+            popup_rect = UIs["trashpopup"].get_rect(topleft=State.popup_position)
+            screen.blit(UIs["trashpopup"], popup_rect)
+            draw_buttons(screen, State.fire_and_trash_popup_buttons)
+        elif State.fire_putout_popup_requested and State.fire_and_trash_popup_buttons:
+            popup_rect = UIs["firepopup"].get_rect(topleft=State.popup_position)
+            screen.blit(UIs["firepopup"], popup_rect)
+            draw_buttons(screen, State.fire_and_trash_popup_buttons)
 
 
 def draw_UI(screen):
@@ -138,14 +157,33 @@ def toggle_tree_popup(mouse_pos):
 
     tile_value = tilemap_drawer.tile_objects[row][col]
     clicked_pos = (col * config.TILE_SIZE, row * config.TILE_SIZE - 330)
+    fire_and_trash_clicked_pos = (col * config.TILE_SIZE, row * config.TILE_SIZE - 210)
 
     if tile_value >= 3:
         if State.tree_upgrade_popup_requested and State.popup_position == clicked_pos:
             close_tree_popup()
         else:
+            close_trash_popup()
+            close_fire_popup()
             open_tree_popup(clicked_pos)
+    elif tile_value == 2:
+        if State.fire_putout_popup_requested and State.popup_position == fire_and_trash_clicked_pos:
+            close_fire_popup()
+        else:
+            close_trash_popup()
+            close_tree_popup()
+            open_fire_popup(fire_and_trash_clicked_pos)
+    elif tile_value == 1:
+        if State.trash_throwout_popup_requested and State.popup_position == fire_and_trash_clicked_pos:
+            close_trash_popup()
+        else:
+            close_fire_popup()
+            close_tree_popup()
+            open_trash_popup(fire_and_trash_clicked_pos)
     else:
+        close_fire_popup()
         close_tree_popup()
+        close_trash_popup() 
 
 def open_tree_popup(position):
     if position[1] < 100:
@@ -163,11 +201,36 @@ def open_tree_popup(position):
     popup_rect = popup_image.get_rect(topleft=adjusted_position)
     create_popup_buttons(popup_rect)
 
-
 def close_tree_popup():
     State.tree_upgrade_popup_requested = False
     State.popup_position = None
     State.popup_buttons.clear()
+
+def open_fire_popup(position):
+    State.fire_putout_popup_requested = True
+    State.popup_position = position
+    popup_rect = UIs["firepopup"].get_rect(topleft=position)
+    create_fire_and_trash_buttons(popup_rect)
+    print("불팝업 켜짐")
+
+def close_fire_popup():
+    State.fire_putout_popup_requested = False
+    State.popup_position = None
+    State.fire_and_trash_popup_buttons.clear()
+    print("불팝업 꺼짐")
+    
+def open_trash_popup(position):
+    State.trash_throwout_popup_requested = True
+    State.popup_position = position
+    popup_rect = UIs["trashpopup"].get_rect(topleft=position)
+    create_fire_and_trash_buttons(popup_rect)
+    print("쓰레기팝업 켜짐")
+
+def close_trash_popup():
+    State.trash_throwout_popup_requested = False
+    State.popup_position = None
+    State.fire_and_trash_popup_buttons.clear()
+    print("쓰레기팝업 꺼짐")
 
 def handle_mouse_click(pos, buttons):
     # 버튼 클릭 우선
