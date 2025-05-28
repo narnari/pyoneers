@@ -1,4 +1,6 @@
 # land_editor.py
+
+from Scripts.features import resource_manager
 from Scripts.utils import assets, config
 
 # 전역 변수: 현재 땅 편집 모드인지 여부
@@ -15,9 +17,10 @@ def is_editing():
     # 현재 땅 편집 모드인지 여부 반환
     return editing_mode
 
+
 def open_tile(tile_map, mouse_pos, tile_size):
     """
-    클릭한 타일을 열기 (True로 설정)
+    클릭한 타일을 열기 (True로 설정)하고, 동적 비용을 적용.
     tile_map: 2차원 리스트 (bool)
     mouse_pos: 마우스 클릭 위치 (x, y)
     tile_size: 타일 크기 (int)
@@ -28,10 +31,44 @@ def open_tile(tile_map, mouse_pos, tile_size):
     col = mouse_pos[0] // tile_size
     row = mouse_pos[1] // tile_size
 
-    # 범위 체크
-    if 4 <= row < config.GRID_HEIGHT-1 and 5 <= col < config.GRID_WIDTH-5:
-        tile_map[row][col] = 1  # 잠긴 땅 
-        
+    # 범위 체크: 클릭한 타일이 유효한 구매 가능 영역 내에 있는지 확인
+    if not (4 <= row < config.GRID_HEIGHT - 1 and 5 <= col < config.GRID_WIDTH - 5):
+        print("맵 범위 오류.")
+        return # 유효한 구매 범위 밖을 클릭했습니다.
+
+    # 이미 타일이 잠금 해제되었는지 확인
+    if tile_map[row][col]:
+        print("이미 열린 땅!")
+        return # 이미 잠금 해제된 타일은 다시 구매할 수 없습니다.
+
+    # 1. 현재 잠금 해제된 타일 개수(resource_manager.land_count)에 따라 비용 결정
+    cost = 0 # cost 변수를 미리 초기화하여 모든 경로에서 정의되도록 합니다.
+
+    if 0 <= resource_manager.land_count <= 9:
+        cost = 50
+    elif 10 <= resource_manager.land_count <= 29:
+        cost = 100
+    elif 30 <= resource_manager.land_count <= 49:
+        cost = 150
+    else:
+        cost = 200 
+
+    # 2. 자원이 충분한지 확인
+    if not resource_manager.can_spend(money=cost):
+        print("땅 살 돈 없음!")
+        return
+
+    # 1. 타일을 잠금 해제 
+    tile_map[row][col] = 1
+
+    # 2. resource_manager에 있는 잠금 해제된 땅의 개수를 증가
+    resource_manager.land_count += 1
+
+    # 3. 콘솔에 메시지 출력 (디버깅 및 정보 제공용)
+    print(f"땅 열었음! 비용 {cost}원 차감됨!")
+
+    toggle_mode() # 하나의 타일을 구매한 직후 편집 모드를 종료
+
 # 땅 열린 모드 인지 화면에 그림
 def draw_editing_text(screen):
     global EDITING_TEXT
@@ -43,4 +80,4 @@ def draw_editing_text(screen):
         EDITING_TEXT = assets.load_font("Jalnan.ttf", 38)
 
     text = EDITING_TEXT.render("땅 편집 중!", True, config.BLACK)
-    screen.blit(text, (1700, 1000))
+    screen.blit(text, (1700, 1000)) 
