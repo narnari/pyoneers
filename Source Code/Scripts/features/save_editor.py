@@ -73,8 +73,4 @@ def file_load_ground_counts():
         for i in range(4):
             f.readline()
         ground_counts = f.readline().strip()
-<<<<<<< HEAD
         return ground_counts
-=======
-        return ground_counts
->>>>>>> 01b521830b38be6a96b7ab5511c78579f40ff6ed
