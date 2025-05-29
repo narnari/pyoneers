@@ -68,3 +68,29 @@ def draw_tree_preview(screen):
         screen.blit(preview_img, preview_img.get_rect(center=(mouse_x, mouse_y)))
     except KeyError:
         pass  # 이미지 없으면 안 그림
+
+# 나무 업그레이드 팝업1 버전전에 뜨는 나무 정보 출력
+def draw_popup_tree_info(screen, popup_pos, popup_type):
+    col = popup_pos[0]//config.TILE_SIZE
+    # 팝업 타입에 따라 좌표 달라짐
+    if popup_type == "popup2":
+        row = (popup_pos[1] - 392 + 330) // config.TILE_SIZE  # popup2는 아래로 내려갔으니 역보정
+    else:
+        row = (popup_pos[1] + 330) // config.TILE_SIZE
+
+    font = assets.load_font("Jalnan.ttf", 27)
+    obj = tilemap_drawer.tile_objects[row][col]
+
+    tree_name = font.render(f"{resource_manager.TREE_NAME[obj]}", True, config.BLACK)
+    tree_produce_oxy_text = font.render(f"{resource_manager.TREE_STATS[obj]['oxygen']} 개", True, config.BLACK)
+    tree_produce_money_text = font.render(f"{resource_manager.TREE_STATS[obj]['money']} 원", True, config.BLACK)
+
+    # 팝업 타입(기본, 거꾸로)에 따라 텍스트 좌표 달라짐
+    if popup_type == "popup2": # 거꾸로
+        screen.blit(tree_name, (popup_pos[0] + 79, popup_pos[1] + 131))
+        screen.blit(tree_produce_oxy_text, (popup_pos[0] + 85, popup_pos[1] + 238))
+        screen.blit(tree_produce_money_text, (popup_pos[0] + 333, popup_pos[1] + 238))
+    else:  # 기본
+        screen.blit(tree_name, (popup_pos[0] + 79, popup_pos[1] + 115))
+        screen.blit(tree_produce_oxy_text, (popup_pos[0] + 85, popup_pos[1] + 220))
+        screen.blit(tree_produce_money_text, (popup_pos[0] + 333, popup_pos[1] + 220))

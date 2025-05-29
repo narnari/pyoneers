@@ -7,6 +7,7 @@ def file_save(money, oxy, ground, objects, ground_count):  # money, oxygen, grou
     with open("About Game/save.txt", "w") as f:
         f.write(f"{money}\n")
         f.write(f"{oxy}\n")
+        
         flat_ground = []
         flat_objects = []
         for row in range(config.OFFSET_HEIGHT, config.OFFSET_HEIGHT + config.HEIGHT_SIZE):
@@ -72,4 +73,8 @@ def file_load_ground_counts():
         for i in range(4):
             f.readline()
         ground_counts = f.readline().strip()
+<<<<<<< HEAD
         return ground_counts
+=======
+        return ground_counts
+>>>>>>> 01b521830b38be6a96b7ab5511c78579f40ff6ed

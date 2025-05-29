@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "Scripts"))
 
 from Scripts.screens import game_screen, title_screen, setting_screen
-from Scripts.utils import config, assets
+from Scripts.utils import config
 from Scripts.features import save_editor, resource_manager, tilemap_drawer
 
 def main():

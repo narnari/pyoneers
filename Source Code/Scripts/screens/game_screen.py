@@ -125,6 +125,7 @@ def draw_popup(screen):
             popup_rect = popup_image.get_rect(topleft=State.popup_position)
             screen.blit(popup_image, popup_rect)
             draw_buttons(screen, State.popup_buttons)
+            tree_editor.draw_popup_tree_info(screen, popup_rect, State.popup_type)
             
         elif State.trash_throwout_popup_requested and State.fire_and_trash_popup_buttons:
             popup_rect = UIs["trashpopup"].get_rect(topleft=State.popup_position)
