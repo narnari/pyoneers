@@ -3,10 +3,11 @@ import time
 #마지막으로 저장한 시간
 last_save_time = time.time()
 
-def file_save(money, oxy, ground, objects):  # money, oxygen, ground를 각각 str, str, 2D list로 받아 파일에 저장
+def file_save(money, oxy, ground, objects, ground_count):  # money, oxygen, ground를 각각 str, str, 2D list로 받아 파일에 저장
     with open("About Game/save.txt", "w") as f:
         f.write(f"{money}\n")
         f.write(f"{oxy}\n")
+        
         flat_ground = []
         flat_objects = []
         for row in range(config.OFFSET_HEIGHT, config.OFFSET_HEIGHT + config.HEIGHT_SIZE):
@@ -17,6 +18,9 @@ def file_save(money, oxy, ground, objects):  # money, oxygen, ground를 각각 s
         f.write(' '.join(flat_ground))
         f.write("\n")
         f.write(' '.join(flat_objects))
+        f.write("\n")
+
+        f.write(f"{ground_count}")
 
 def auto_save(money, oxy, ground, objects, interval):
     global last_save_time
@@ -62,6 +66,11 @@ def file_load():  # 파일을 열어 money, oxygen, ground를 읽어들여 반�
         temp2 = list(map(int, temp2.split()))
         objects = [temp2[i * 20:(i + 1) * 20] for i in range(11)]
         return money, oxy, ground, objects
-    
-#ground : 땅의 열림 유무를 저장하는 리스트, tile_map 리스트에 대응
-#objects : 땅에 놓여진 오브젝트 ID를 저장하는 리스트, tile_objects 리스트에 대응응
+
+
+def file_load_ground_counts():
+    with open("About Game/save.txt", "r") as f:
+        for i in range(4):
+            f.readline()
+        ground_counts = f.readline().strip()
+        return ground_counts
