@@ -18,7 +18,8 @@ class State:
     back_to_title_requested = False # 타이틀 화면으로의 복귀 요청이 들어왔는지의 여부부
     popup_position = None # 팝업 위치 지정
     popup_buttons = [] # 팝업에 표시할 버튼 리스트
-    fire_and_trash_popup_buttons = [] # 불 끄기 및 쓰레기 버리기 팝업에 표시할 버튼 리스트
+    fire_popup_buttons = [] # 불 끄기 팝업에 표시할 버튼 리스트
+    trash_popup_buttons = [] # 쓰레기 버리기 팝업에 표시할 버튼 리스트
     popup_type = "default"  # 팝업창에 사용할 이미지
 
 
@@ -74,24 +75,29 @@ def create_buttons(screen):
 
 def create_popup_buttons(popup_rect):
     # 기본 버튼 위치: 오른쪽에 세로로 정렬
-    if State.popup_type == "popup2":
-        # 예시: sidns는 팝업 아래쪽에 가로로 배치
-        State.popup_buttons = [
-            Button((popup_rect.right + 20, popup_rect.bottom - 246, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
-            Button((popup_rect.right + 20, popup_rect.bottom - 134, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
+    if State.tree_upgrade_popup_requested:
+        if State.popup_type == "popup2":
+            # 예시: sidns는 팝업 아래쪽에 가로로 배치
+            State.popup_buttons = [
+                Button((popup_rect.right + 20, popup_rect.bottom - 246, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
+                Button((popup_rect.right + 20, popup_rect.bottom - 134, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
+            ]
+        else:
+            # 기본 팝업: 오른쪽에 세로로 배치
+            State.popup_buttons = [
+                Button((popup_rect.right + 20, popup_rect.bottom - 260, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
+                Button((popup_rect.right + 20, popup_rect.bottom - 148, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
+            ]
+    elif State.fire_putout_popup_requested:
+        State.fire_popup_buttons = [
+            Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_fire_action, "제거", bg_color=config.BLUE),
+            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), cancel_popup_action, "취소", bg_color=config.RED)
         ]
-    else:
-        # 기본 팝업: 오른쪽에 세로로 배치
-        State.popup_buttons = [
-            Button((popup_rect.right + 20, popup_rect.bottom - 260, 180, 60), remove_tree_action, "제거", bg_color=config.RED),
-            Button((popup_rect.right + 20, popup_rect.bottom - 148, 180, 60), upgrade_tree_action, "업그레이드", bg_color=config.BLUE)
+    elif State.trash_throwout_popup_requested:
+        State.trash_popup_buttons = [
+            Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_trash_action, "제거", bg_color=config.BLUE),
+            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), cancel_popup_action, "취소", bg_color=config.RED)
         ]
-def create_fire_and_trash_buttons(popup_rect):
-    State.fire_and_trash_popup_buttons = [
-        Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_object_action, "제거", bg_color=config.BLUE),
-        Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), cancel_object_action, "취소", bg_color=config.RED)
-    ]
-
 
 def draw_buttons(screen, buttons):
     for btn in buttons:
@@ -116,25 +122,26 @@ def draw_game(screen):
         resource_manager.draw_resources(screen) # 재화 보유량 및 생산략 출력
 
 def draw_popup(screen):
-    if not State.is_manual_open:
-        if State.tree_upgrade_popup_requested and State.popup_position:
+    if not State.is_manual_open: # 매뉴얼 오픈 상태가 아닐 때만 팝업 띄우고 버튼 생성
+        if State.tree_upgrade_popup_requested and State.popup_position: # 나무 팝업 띄워졌다면
             if State.popup_type == "popup2":
                 popup_image = UIs["popup2"]
             else:
                 popup_image = UIs["popup1"]
             popup_rect = popup_image.get_rect(topleft=State.popup_position)
-            screen.blit(popup_image, popup_rect)
-            draw_buttons(screen, State.popup_buttons)
+            screen.blit(popup_image, popup_rect) # 화면에 나무 팝업 이미지 그리기
+            draw_buttons(screen, State.popup_buttons) # 나무 팝업 버튼 그리기
             tree_editor.draw_popup_tree_info(screen, popup_rect, State.popup_type)
             
-        elif State.trash_throwout_popup_requested and State.fire_and_trash_popup_buttons:
+        elif State.trash_throwout_popup_requested: # 쓰레기 팝업 띄워졌다면
             popup_rect = UIs["trashpopup"].get_rect(topleft=State.popup_position)
-            screen.blit(UIs["trashpopup"], popup_rect)
-            draw_buttons(screen, State.fire_and_trash_popup_buttons)
-        elif State.fire_putout_popup_requested and State.fire_and_trash_popup_buttons:
+            screen.blit(UIs["trashpopup"], popup_rect) # 화면에 쓰레기 팝업 이미지 그리기
+            draw_buttons(screen, State.trash_popup_buttons) # 쓰레기 팝업 버튼 그리기
+            
+        elif State.fire_putout_popup_requested: # 불 팝업 띄워졌다면
             popup_rect = UIs["firepopup"].get_rect(topleft=State.popup_position)
-            screen.blit(UIs["firepopup"], popup_rect)
-            draw_buttons(screen, State.fire_and_trash_popup_buttons)
+            screen.blit(UIs["firepopup"], popup_rect) # 화면에 불 팝업 이미지 그리기
+            draw_buttons(screen, State.fire_popup_buttons) # 불 팝업 버튼 그리기
 
 
 def draw_UI(screen):
@@ -151,49 +158,52 @@ def remove_tree_action():
 def upgrade_tree_action():
     print("업그레이드 버튼 클릭됨")
     
-def remove_object_action():
-    print("쓰레기 & 불 제거 버튼 클릭됨")
+def remove_fire_action():
+    print("불 제거 버튼 클릭됨")
     
-def cancel_object_action():
+def remove_trash_action():
+    print("쓰레기 제거 버튼 클릭됨")
+    
+def cancel_popup_action():
     print("쓰레기 & 불 취소 버튼 클릭됨")
 
 def toggle_tree_popup(mouse_pos):
     col, row = mouse_pos[0] // config.TILE_SIZE, mouse_pos[1] // config.TILE_SIZE
-    if not (0 <= row < config.GRID_HEIGHT and 0 <= col < config.GRID_WIDTH):
+    if not (0 <= row < config.GRID_HEIGHT and 0 <= col < config.GRID_WIDTH): # 타일을 클릭한 것이 아니면 return
         return
 
-    tile_value = tilemap_drawer.tile_objects[row][col]
-    clicked_pos = (col * config.TILE_SIZE, row * config.TILE_SIZE - 330)
-    fire_and_trash_clicked_pos = (col * config.TILE_SIZE, row * config.TILE_SIZE - 210)
+    tile_value = tilemap_drawer.tile_objects[row][col] # 클릭한 타일의 값 불러오기
+    clicked_pos = (col * config.TILE_SIZE, row * config.TILE_SIZE - 330) # 나무 팝업이 띄워질 기준점
+    fire_and_trash_clicked_pos = (col * config.TILE_SIZE, row * config.TILE_SIZE - 210) # 불 팝업 & 쓰레기 팝업이 띄워질 기준점
 
-    if tile_value >= 3:
-        if State.tree_upgrade_popup_requested and State.popup_position == clicked_pos:
+    if tile_value >= 3: # 클릭한 타일의 값이 3 이상 (= 아까시나무, 자작나무... 아무튼 나무) 일때
+        if State.tree_upgrade_popup_requested and State.popup_position == clicked_pos: # 클릭해서 팝업이 띄워진 타일을 또 클릭했을 때
             close_tree_popup()
-        else:
+        else: # 아니면 혹시나 다른 팝업 띄워져 있는거 싹 끄고 클릭한 타일의 팝업 열기기
             close_trash_popup()
             close_fire_popup()
             open_tree_popup(clicked_pos)
-    elif tile_value == 2:
+    elif tile_value == 2: # 클릭한 타일의 값이 2 (= 불) 일때
         if State.fire_putout_popup_requested and State.popup_position == fire_and_trash_clicked_pos:
             close_fire_popup()
         else:
             close_trash_popup()
             close_tree_popup()
             open_fire_popup(fire_and_trash_clicked_pos)
-    elif tile_value == 1:
+    elif tile_value == 1: # 클릭한 타일의 값이 1 (= 쓰레기) 일때
         if State.trash_throwout_popup_requested and State.popup_position == fire_and_trash_clicked_pos:
             close_trash_popup()
         else:
             close_fire_popup()
             close_tree_popup()
             open_trash_popup(fire_and_trash_clicked_pos)
-    else:
+    else: # 그 외에 다른 곳 클릭 시 열려있는 팝업 전부 닫기기
         close_fire_popup()
         close_tree_popup()
         close_trash_popup() 
 
 def open_tree_popup(position):
-    if position[1] < 100:
+    if position[1] < 100:   # 나무가 위쪽에 있으면 팝업을 아래쪽으로, 아니라면 위쪽으로 띄우기
         # popup2용 위치 조정 (예: 아래로 100px 내림)
         adjusted_position = (position[0], position[1] + 392)
         popup_image = UIs["popup2"]
@@ -202,38 +212,40 @@ def open_tree_popup(position):
         popup_image = UIs["popup1"]
 
     State.tree_upgrade_popup_requested = True
-    State.popup_position = adjusted_position
+    State.popup_position = adjusted_position # 팝업이 띄워질 위치 정하기
     State.popup_type = "popup2" if popup_image == UIs["popup2"] else "default"
 
-    popup_rect = popup_image.get_rect(topleft=adjusted_position)
-    create_popup_buttons(popup_rect)
+    popup_rect = popup_image.get_rect(topleft=adjusted_position) # 팝업 크기에 맞게 좌표 지정
+    create_popup_buttons(popup_rect) # 지정한 좌표로 팝업 버튼 생성
 
 def close_tree_popup():
-    State.tree_upgrade_popup_requested = False
-    State.popup_position = None
-    State.popup_buttons.clear()
+    State.tree_upgrade_popup_requested = False  # 팝업이 띄워졌는지 여부 False로 변경
+    State.popup_position = None # 팝업 띄워질 위치 초기화
+    State.popup_buttons.clear() # 팝업과 함께 띄워지는 버튼 리스트 삭제 (버튼 지우기)
+
+# 나머지 open_fire_popup, open_trash_popup / close_fire_popup, close_trash_popup도 비슷하게 동작함
 
 def open_fire_popup(position):
     State.fire_putout_popup_requested = True
     State.popup_position = position
     popup_rect = UIs["firepopup"].get_rect(topleft=position)
-    create_fire_and_trash_buttons(popup_rect)
+    create_popup_buttons(popup_rect)
 
 def close_fire_popup():
     State.fire_putout_popup_requested = False
     State.popup_position = None
-    State.fire_and_trash_popup_buttons.clear()
+    State.fire_popup_buttons.clear()
     
 def open_trash_popup(position):
     State.trash_throwout_popup_requested = True
     State.popup_position = position
     popup_rect = UIs["trashpopup"].get_rect(topleft=position)
-    create_fire_and_trash_buttons(popup_rect)
+    create_popup_buttons(popup_rect)
 
 def close_trash_popup():
     State.trash_throwout_popup_requested = False
     State.popup_position = None
-    State.fire_and_trash_popup_buttons.clear()
+    State.trash_popup_buttons.clear()
 
 def handle_mouse_click(pos, buttons):
     # 버튼 클릭 우선
@@ -244,16 +256,23 @@ def handle_mouse_click(pos, buttons):
             btn.check_click()
             return
 
-    # 팝업 버튼
+    # 나무 팝업 버튼
     if State.tree_upgrade_popup_requested:
         for btn in State.popup_buttons:
             if btn.rect.collidepoint(pos):
                 btn.check_click()
                 return
     
-    # 팝업 버튼
-    if State.fire_putout_popup_requested or State.fire_and_trash_popup_buttons:
-        for btn in State.fire_and_trash_popup_buttons:
+    # 불 팝업 버튼
+    elif State.fire_putout_popup_requested:
+        for btn in State.fire_popup_buttons:
+            if btn.rect.collidepoint(pos):
+                btn.check_click()
+                return
+            
+    # 쓰레기 팝업 버튼
+    elif State.trash_throwout_popup_requested:
+        for btn in State.trash_popup_buttons:
             if btn.rect.collidepoint(pos):
                 btn.check_click()
                 return
