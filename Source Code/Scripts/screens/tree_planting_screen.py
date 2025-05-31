@@ -11,10 +11,10 @@ is_manual_open = False
 
 # 나무 정보
 trees = [
-    {"name": "가문비나무", "increase": 10},
-    {"name": "아까시나무", "increase": 20},
-    {"name": "자작나무", "increase": 30},
-    {"name": "상수리나무", "increase": 50},
+    {"name": "가문비나무", "costs": 50, "oxygen": 15, "money": 2},
+    {"name": "아까시나무", "costs": 80, "oxygen": 12, "money": 8},
+    {"name": "자작나무", "costs": 80, "oxygen": 8, "money": 12},
+    {"name": "상수리나무", "costs": 50, "oxygen": 2, "money": 15},
 ]
 
 images = {}
@@ -36,6 +36,7 @@ def load_tree_planting_assets():
 
 # 폰트 설정
 FONT = assets.load_font("Jalnan.ttf", 50)
+INFO_FONT = assets.load_font("Jalnan.ttf", 29)
 BUTTON_FONT = assets.load_font("Jalnan.ttf", 38)
 
 # 기본 버튼 클래스. rect는 버튼의 위치와 크기, callback은 실행할 함수
@@ -53,9 +54,10 @@ class ButtonBase:
             surface.blit(self.image, self.rect)
             # 텍스트 버튼 그리기. 배경은 녹색, 글씨는 흰색
         elif self.text:
-            pygame.draw.rect(surface, config.GREEN, self.rect, border_radius=10)
+            pygame.draw.rect(surface, config.GREEN, self.rect, border_radius=15)
             text_surf = BUTTON_FONT.render(self.text, True, config.WHITE)
-            text_rect = text_surf.get_rect(center=self.rect.center)
+            text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.centery - 20))
+
             surface.blit(text_surf, text_rect)
 
     # 클릭된 위치가 버튼 내부이면 콜백 함수 실행
@@ -113,14 +115,27 @@ def draw_tree_card(screen, x, y, tree, button, image):
 
     # 카드에 쓸 글자들을 이미지로 전환하고 안티 앨리어싱을 한다. 색상은 하얀색이다. 그 후 카드 위에 그린다.
     name_surf = FONT.render(tree["name"], True, config.WHITE)
-    screen.blit(name_surf, name_surf.get_rect(center=(x + 215, y + 400)))
+    screen.blit(name_surf, name_surf.get_rect(center=(x + 215, y + 370)))
 
-    info_surf = BUTTON_FONT.render(f"산소 생산량 {tree['increase']} 증가", True, config.WHITE)
-    screen.blit(info_surf, info_surf.get_rect(center=(x + 215, y + 460)))
+    oxygen_surf = INFO_FONT.render(f"산소 생산량 {tree['oxygen']} 증가", True, config.WHITE)
+    screen.blit(oxygen_surf, oxygen_surf.get_rect(center=(x + 215, y + 430)))
 
-    # "심기" 버튼을 그린다. 버튼의 구현은 별도로 한다.
+    money_surf = INFO_FONT.render(f"돈 생산량 {tree['money']} 증가", True, config.WHITE)
+    screen.blit(money_surf, money_surf.get_rect(center=(x + 215, y + 470)))
+
+    # 버튼을 그린다. 버튼의 구현은 별도로 한다.
     button.draw(screen)
 
+    # 버튼의 중심 좌표 계산
+    button_rect = button.rect
+    center_x = button_rect.centerx
+    center_y = button_rect.centery
+
+    # 비용 텍스트 (버튼 아래에)
+    cost_text = BUTTON_FONT.render(f"-${tree['costs']}", True, config.WHITE)
+    cost_rect = cost_text.get_rect(center=(center_x, center_y + 25))  # 버튼보다 아래
+    screen.blit(cost_text, cost_rect)
+    
 # 메인 루프 함수
 def run_tree_planting(screen):
     global running
@@ -138,12 +153,13 @@ def run_tree_planting(screen):
     # 심기 버튼 생성
     tree_planting_button = [
         ButtonBase(
-            (positions[i] + (CARD_WIDTH - 200) / 2, CARD_Y + CARD_HEIGHT - 120, 200, 70),
+            (positions[i] + (CARD_WIDTH - 300) / 2, CARD_Y + CARD_HEIGHT - 140, 300, 110),
             lambda t=tree["name"]: select_tree(t),
-            text="심기"
+            text="비용"
         )
         for i, tree in enumerate(trees)
     ]
+
 
     # 루프를 종료하기 위한 함수
     def set_exit(value):
@@ -217,6 +233,6 @@ def run_tree_planting(screen):
         resource_manager.update_resources()
         resource_manager.draw_resources(screen)
 
-        # 화면 1초에 60 프레임으로 유지지
+        # 화면 1초에 60 프레임으로 유지
         pygame.display.flip()
         clock.tick(60)
