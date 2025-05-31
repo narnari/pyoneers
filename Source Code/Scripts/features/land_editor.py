@@ -44,7 +44,7 @@ def open_tile(tile_map, mouse_pos, tile_size):
     # 1. 현재 잠금 해제된 타일 개수(resource_manager.land_count)에 따라 비용 결정
     cost = 0 # cost 변수를 미리 초기화하여 모든 경로에서 정의되도록 합니다.
 
-    if 0 <= resource_manager.land_count <= 9:
+    if  resource_manager.land_count <= 9:
         cost = 50
     elif 10 <= resource_manager.land_count <= 29:
         cost = 100

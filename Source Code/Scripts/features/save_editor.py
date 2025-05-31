@@ -74,3 +74,10 @@ def file_load_ground_counts():
             f.readline()
         ground_counts = f.readline().strip()
         return ground_counts
+    
+def file_load_tutorial():
+    with open("About Game/save.txt", "r") as f:
+        for i in range(5):
+            f.readline()
+            tutorial = f.readline().strip()
+            return tutorial

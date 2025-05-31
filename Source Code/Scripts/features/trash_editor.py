@@ -50,3 +50,9 @@ def is_full_trash(tile_objects, tile_map):
 def draw_trash_count(screen, trash_count):
         trash_count_text = TRASH_TEXT.render(str(trash_count), True, config.BLACK)
         screen.blit(trash_count_text, (1760, 545))
+
+def remove_trash(x,y,t_to_f, trash_count, money):   #t_to_f에서 x,y좌표에 해당하는 쓰레기를 제거(리스트 컴프리헨션), 이후 카운트 1 감소
+     t_to_f[:] = [t for t in t_to_f if not (t.x == x and t.y == y)]
+     trash_count -= 1
+     money -= 20
+     return trash_count, money

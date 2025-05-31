@@ -4,7 +4,9 @@ from Scripts.features import trash_editor, resource_manager
 
 def ignite(tile_objects, x, y, fspread, tile_map):                #위치, 오브젝트 2차원 리스트를 인자로 받아 불로 바꿔줌.
     tile_objects[y][x] = 2                              #시간 재는 것은 fire_func 스크립트에서 진행.
+    #땅도 다시 잠가버리고 땅 카운트도 낮춰버리기기
     tile_map[y][x] = 0
+    resource_manager.land_count -= 1
     trash_editor.trash_count = trash_editor.decrease_count_when_ignite(trash_editor.trash_count)
     if not any(f.x == x and f.y == y for f in fspread): #이미 fspread에 좌표가 존재할 시 중복 append 방지
         fspread.append(config.Fire(x,y,time.time()))
@@ -28,21 +30,18 @@ def spread(tile_objects, x, y, tile_map, fspread):
             continue
         if (now == 1):     #쓰레기에 불이 번지지면 쓰레기 카운트 -1
             trash_editor.trash_count = trash_editor.decrease_count_when_ignite(trash_editor.trash_count)
-        #나머지 경우: (나무가 심겨있거나 땅이 비어있음) 해당 타일을 불로 만듦듦
+        #나머지 경우: (나무가 심겨있거나 땅이 비어있음) 해당 타일을 불로 만듦
         tile_objects[ny][nx] = 2
+        #땅 잠구고 카운트 줄이깅
         tile_map[ny][nx] = 0
+        resource_manager.land_count -= 1
         resource_manager.check_resource(tile_objects)
         if not any(f.x == nx and f.y == ny for f in fspread):   #이미 fspread에 좌표가 존재할 시 중복 append 방지
             fspread.append(config.Fire(nx, ny, time.time()))
 
 def fire_on_load(x,y, fspread, tile_map):
-    tile_map[y][x] = 0
     if not any(f.x == x and f.y == y for f in fspread):
         fspread.append(config.Fire(x,y,time.time()))
-
-
-
-
 
 def control_fire(t_to_f, fspread, tile_objects, tile_map):
     #trash to fire process
@@ -63,5 +62,7 @@ def control_fire(t_to_f, fspread, tile_objects, tile_map):
                 #불 번지는건 바로 삭제하지 않음(불이 여러번 퍼질 수 있는 예외가 존재). 
                 #!!향후 불을 끄는 함수 구현할 때 삭제할 예정!!
 
-
-#   Fire 객체는 x, y, tick 멤버로 이루어져있으며, 셋 다 int. x와 y는 좌표를 나타내며 tick은 생성 시간을 나타냄. config.py에 정의하였음음
+def remove_fire(x,y, fspread, oxygen):  #fspread에서 x,y좌표에 해당하는 불을 제거(리스트 컴프리헨션)
+    fspread[:] = [f for f in fspread if not (f.x == x and f.y == y)]
+    oxygen -= 100
+    return oxygen

@@ -1,6 +1,6 @@
 import pygame, sys, ctypes
 from pygame.locals import QUIT
-from Scripts.features import land_editor, trash_editor, tilemap_drawer, tree_editor, resource_manager
+from Scripts.features import land_editor, trash_editor, tilemap_drawer, tree_editor, resource_manager, fire_editor
 from Scripts.utils import assets, config
 ctypes.windll.user32.SetProcessDPIAware()
 
@@ -159,10 +159,36 @@ def upgrade_tree_action():
     print("업그레이드 버튼 클릭됨")
     
 def remove_fire_action():
-    print("불 제거 버튼 클릭됨")
+    if State.popup_position is None:
+        return
+    #산소 부족하면 그냥 리턴턴
+    if resource_manager.resources["stored_oxygen"] < 20:
+        return
+    
+    popup_x, popup_y = State.popup_position
+    x = popup_x // config.TILE_SIZE
+    popup_y = popup_y + 210
+    y = popup_y // config.TILE_SIZE
+
+    tilemap_drawer.tile_objects[y][x] = 0
+    resource_manager.resources["stored_oxygen"] = fire_editor.remove_fire(x,y, tilemap_drawer.fspread, resource_manager.resources["stored_oxygen"])
+    close_fire_popup()
     
 def remove_trash_action():
-    print("쓰레기 제거 버튼 클릭됨")
+    if State.popup_position is None:
+        return
+    #돈 부족하면 그냥 리턴
+    if resource_manager.resources["stored_money"] < 20:
+        return
+    popup_x, popup_y = State.popup_position
+    x = popup_x // config.TILE_SIZE
+    y = popup_y + 210
+    y = y // config.TILE_SIZE
+
+    tilemap_drawer.tile_objects[y][x] = 0
+    trash_editor.trash_count, resource_manager.resources["stored_money"] = trash_editor.remove_trash(x,y,tilemap_drawer.t_to_f, trash_editor.trash_count, resource_manager.resources["stored_money"])
+    close_trash_popup()
+
     
 def cancel_popup_action():
     print("쓰레기 & 불 취소 버튼 클릭됨")
