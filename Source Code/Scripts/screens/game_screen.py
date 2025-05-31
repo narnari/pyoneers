@@ -88,8 +88,8 @@ def create_popup_buttons(popup_rect):
         ]
 def create_fire_and_trash_buttons(popup_rect):
     State.fire_and_trash_popup_buttons = [
-        Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_tree_action, "제거", bg_color=config.BLUE),
-        Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), upgrade_tree_action, "취소", bg_color=config.RED)
+        Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_object_action, "제거", bg_color=config.BLUE),
+        Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), cancel_object_action, "취소", bg_color=config.RED)
     ]
 
 
@@ -150,6 +150,12 @@ def remove_tree_action():
 
 def upgrade_tree_action():
     print("업그레이드 버튼 클릭됨")
+    
+def remove_object_action():
+    print("쓰레기 & 불 제거 버튼 클릭됨")
+    
+def cancel_object_action():
+    print("쓰레기 & 불 취소 버튼 클릭됨")
 
 def toggle_tree_popup(mouse_pos):
     col, row = mouse_pos[0] // config.TILE_SIZE, mouse_pos[1] // config.TILE_SIZE
@@ -241,6 +247,13 @@ def handle_mouse_click(pos, buttons):
     # 팝업 버튼
     if State.tree_upgrade_popup_requested:
         for btn in State.popup_buttons:
+            if btn.rect.collidepoint(pos):
+                btn.check_click()
+                return
+    
+    # 팝업 버튼
+    if State.fire_putout_popup_requested or State.fire_and_trash_popup_buttons:
+        for btn in State.fire_and_trash_popup_buttons:
             if btn.rect.collidepoint(pos):
                 btn.check_click()
                 return
