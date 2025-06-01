@@ -79,5 +79,6 @@ def file_load_tutorial():
     with open("About Game/save.txt", "r") as f:
         for i in range(5):
             f.readline()
-            tutorial = f.readline().strip()
-            return tutorial
+        tutorial = f.readline().strip()
+        return tutorial
+    

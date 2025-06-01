@@ -5,7 +5,7 @@ import os
 # 경로 설정
 sys.path.append(os.path.join(os.path.dirname(__file__), "Scripts"))
 
-from Scripts.screens import game_screen, title_screen, setting_screen
+from Scripts.screens import game_screen, title_screen, setting_screen, tutorial_screen
 from Scripts.utils import config
 from Scripts.features import save_editor, resource_manager, tilemap_drawer
 
@@ -26,7 +26,11 @@ def main():
         if state == "title":
             result = title_screen.run_title(screen)
             if result == "start":
-                state = "game"
+                if save_editor.file_load_tutorial() == "0":
+                    tutorial_screen.run_tutorial(screen)
+                    state = "game"
+                else:
+                    state = "game"
             elif result == "exit":
                 save_editor.file_save(
                     resource_manager.resources["stored_money"], 
