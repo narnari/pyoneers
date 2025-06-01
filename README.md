@@ -1,3 +1,4 @@
+구현 정도 (90%)
 # 🌱 TERRABLOOM
 
 **TEAM: PYONEERS**  
