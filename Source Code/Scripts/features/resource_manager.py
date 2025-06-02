@@ -97,7 +97,8 @@ def check_resource(tile_objects):
 def get_tree_cost(tree_index):
     count = tree_counts.get(tree_index, 0)
     base_cost = TREE_COST_INFO.get(tree_index, 0)
-    return int(math.sqrt(count + 1) * base_cost) # count + 1 인 이유는 처음 심을 때도 돈 쓰게 하기 위함
+    return int((count + 1) ** 1.5 * base_cost) # 1.5배로 증가, 난이도 조절 위함
+    #return int(math.sqrt(count + 1) * base_cost) # count + 1 인 이유는 처음 심을 때도 돈 쓰게 하기 위함
 
 
 def draw_resources(screen):
