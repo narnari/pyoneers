@@ -11,10 +11,10 @@ is_manual_open = False
 
 # 나무 정보
 trees = [
-    {"name": "가문비나무", "costs": 50, "oxygen": 15, "money": 2},
-    {"name": "아까시나무", "costs": 80, "oxygen": 12, "money": 8},
-    {"name": "자작나무", "costs": 80, "oxygen": 8, "money": 12},
-    {"name": "상수리나무", "costs": 50, "oxygen": 2, "money": 15},
+    {"name": "가문비나무", "costs": lambda: resource_manager.get_tree_cost(3), "oxygen": 15, "money": 2},
+    {"name": "아까시나무", "costs": lambda: resource_manager.get_tree_cost(4), "oxygen": 12, "money": 8},
+    {"name": "자작나무", "costs": lambda: resource_manager.get_tree_cost(5), "oxygen": 8, "money": 12},
+    {"name": "상수리나무", "costs": lambda: resource_manager.get_tree_cost(6), "oxygen": 2, "money": 15},
 ]
 
 images = {}
@@ -132,7 +132,7 @@ def draw_tree_card(screen, x, y, tree, button, image):
     center_y = button_rect.centery
 
     # 비용 텍스트 (버튼 아래에)
-    cost_text = BUTTON_FONT.render(f"-${tree['costs']}", True, config.WHITE)
+    cost_text = BUTTON_FONT.render(f"-${tree['costs']()}", True, config.WHITE)
     cost_rect = cost_text.get_rect(center=(center_x, center_y + 25))  # 버튼보다 아래
     screen.blit(cost_text, cost_rect)
     
