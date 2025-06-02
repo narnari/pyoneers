@@ -45,13 +45,13 @@ def open_tile(tile_map, mouse_pos, tile_size):
     cost = 0 # cost 변수를 미리 초기화하여 모든 경로에서 정의되도록 합니다.
 
     if  resource_manager.land_count <= 9:
-        cost = 50
+        cost = 500
     elif 10 <= resource_manager.land_count <= 29:
-        cost = 100
+        cost = 1000
     elif 30 <= resource_manager.land_count <= 49:
-        cost = 150
+        cost = 1500
     else:
-        cost = 200 
+        cost = 2000
 
     # 2. 자원이 충분한지 확인
     if not resource_manager.can_spend(money=cost):
@@ -67,7 +67,7 @@ def open_tile(tile_map, mouse_pos, tile_size):
     # 3. 콘솔에 메시지 출력 (디버깅 및 정보 제공용)
     print(f"땅 열었음! 비용 {cost}원 차감됨!")
 
-    toggle_mode() # 하나의 타일을 구매한 직후 편집 모드를 종료
+    #toggle_mode() # 하나의 타일을 구매한 직후 편집 모드를 종료
 
 # 땅 열린 모드 인지 화면에 그림
 def draw_editing_text(screen):
