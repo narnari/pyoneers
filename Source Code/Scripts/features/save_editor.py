@@ -3,7 +3,7 @@ import time
 #마지막으로 저장한 시간
 last_save_time = time.time()
 
-def file_save(money, oxy, ground, objects, ground_count):  # money, oxygen, ground를 각각 str, str, 2D list로 받아 파일에 저장
+def file_save(money, oxy, ground, objects, ground_count, tutorial):  # money, oxygen, ground를 각각 str, str, 2D list로 받아 파일에 저장
     with open("About Game/save.txt", "w") as f:
         f.write(f"{money}\n")
         f.write(f"{oxy}\n")
@@ -20,7 +20,8 @@ def file_save(money, oxy, ground, objects, ground_count):  # money, oxygen, grou
         f.write(' '.join(flat_objects))
         f.write("\n")
 
-        f.write(f"{ground_count}")
+        f.write(f"{ground_count}\n")
+        f.write(f"{tutorial}")
 
 def auto_save(money, oxy, ground, objects, interval):
     global last_save_time

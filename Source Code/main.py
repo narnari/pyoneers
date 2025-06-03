@@ -36,7 +36,8 @@ def main():
                     resource_manager.resources["stored_money"], 
                     resource_manager.resources["stored_oxygen"], 
                     tilemap_drawer.tile_map, tilemap_drawer.tile_objects, 
-                    resource_manager.land_count)
+                    resource_manager.land_count,
+                    tutorial_screen.tutorial_complete)
                 running = False
             elif result == "setting":
                 setting_screen.back_state = "title"
