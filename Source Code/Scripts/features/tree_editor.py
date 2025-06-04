@@ -1,7 +1,9 @@
 # tree_plot_plant.py
 import pygame
+from Scripts.screens import game_screen
 from Scripts.features import tilemap_drawer, resource_manager
 from Scripts.utils import assets, config
+import time
 
 planting_mode = False
 
@@ -23,14 +25,46 @@ def plant_tree(tile_map, tile_objects, mouse_pos, tile_size, selected_tree_index
             # 자원이 충분해야만 심기
             if not resource_manager.can_spend(money=cost):
                 print("돈 부족! 나무 못 심음!")
+                game_screen.State.show_no_tree_text = True
+                game_screen.State.show_no_tree_time = time.time()
                 planting_mode = False  # 심기 실패 시 모드 종료
                 return
 
             # 심기 성공
             tile_objects[row][col] = tree_index 
+
+            # 땅 구매 완료 출력용
+            game_screen.State.show_success_tree_text = True
+            game_screen.State.show_success_tree_time = time.time()
+
             resource_manager.check_resource(tile_objects)
             planting_mode = False  # 심기 후 모드 종료
             print(f"{resource_manager.get_tree_name(tree_index)} 심음! 비용 {cost}원 차감됨!")
+
+
+# 나무 살살 돈 없음 화면에 출력
+def draw_no_tree_text(screen):
+    global EDITING_TEXT
+
+    # pygame 초기화 이후에 폰트 로딩
+    if EDITING_TEXT is None:
+        EDITING_TEXT = assets.load_font("Jalnan.ttf", 38)
+
+        # text = EDITING_TEXT.render(f"땅 구매 비용 {resource_manager.can_spend(cost)}원!", True, config.BLACK)
+    text1 = EDITING_TEXT.render("돈 부족", True, config.BLACK)
+    text2 = EDITING_TEXT.render("구매 불가능!", True, config.BLACK)
+    screen.blit(text1, (100, 200))
+    screen.blit(text2, (50, 240)) 
+    return
+
+# 나무 구매 완료 화면에 출력
+def draw_success_tree_text(screen):
+    global EDITING_TEXT
+    if EDITING_TEXT is None:
+        EDITING_TEXT = assets.load_font("Jalnan.ttf", 38)
+    text = EDITING_TEXT.render("나무 구매 완료!", True, config.BLACK)
+    screen.blit(text, (30, 240)) 
+
 
 
 # 나무 심는 모드 인지 화면에 그림
