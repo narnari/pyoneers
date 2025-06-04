@@ -58,8 +58,8 @@ def open_tile(tile_map, mouse_pos, tile_size):
     # 2. 자원이 충분한지 확인
     if not resource_manager.can_spend(money=cost):
         print("땅 살 돈 없음!")
-        game_screen.State.show_no_money_text = True
-        game_screen.State.show_no_money_time = time.time()
+        game_screen.State.show_no_land_text = True
+        game_screen.State.show_no_land_time = time.time()
 
         return
 
@@ -67,8 +67,8 @@ def open_tile(tile_map, mouse_pos, tile_size):
     tile_map[row][col] = 1
 
     # 땅 구매 완료 출력용
-    game_screen.State.show_success_money_text = True
-    game_screen.State.show_success_money_time = time.time()
+    game_screen.State.show_success_land_text = True
+    game_screen.State.show_success_land_time = time.time()
 
     # 2. resource_manager에 있는 잠금 해제된 땅의 개수를 증가
     resource_manager.land_count += 1
@@ -79,7 +79,7 @@ def open_tile(tile_map, mouse_pos, tile_size):
     #toggle_mode() # 하나의 타일을 구매한 직후 편집 모드를 종료
 
 # 땅 열 돈 없음 화면에 출력
-def draw_no_money_text(screen):
+def draw_no_land_text(screen):
     global EDITING_TEXT
 
     # pygame 초기화 이후에 폰트 로딩
@@ -94,7 +94,7 @@ def draw_no_money_text(screen):
     return
 
 # 땅 구매 완료 화면에 출력
-def draw_success_text(screen):
+def draw_success_land_text(screen):
     global EDITING_TEXT
     if EDITING_TEXT is None:
         EDITING_TEXT = assets.load_font("Jalnan.ttf", 38)
