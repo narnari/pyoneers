@@ -1,7 +1,8 @@
-import pygame, sys, ctypes
+import pygame, ctypes
 from pygame.locals import QUIT
 from Scripts.features import land_editor, trash_editor, tilemap_drawer, tree_editor, resource_manager, fire_editor
 from Scripts.utils import assets, config
+import time # 돈 없다는 텍스트 출력 시가 확인 시 필요
 ctypes.windll.user32.SetProcessDPIAware()
 
 UIs = {}
@@ -21,6 +22,10 @@ class State:
     fire_popup_buttons = [] # 불 끄기 팝업에 표시할 버튼 리스트
     trash_popup_buttons = [] # 쓰레기 버리기 팝업에 표시할 버튼 리스트
     popup_type = "default"  # 팝업창에 사용할 이미지
+    show_no_money_text = False # 돈 없는 텍스트 출력할지 여부
+    show_success_money_text = False # 땅 구매 완료 텍스트 출력할지 여부
+    show_no_money_time = 0 # 텍스트 출력할 시간
+    show_success_money_time = 0 # 텍스트 출력할 시간
 
 
 # 에셋 불러오기
@@ -91,12 +96,12 @@ def create_popup_buttons(popup_rect):
     elif State.fire_putout_popup_requested:
         State.fire_popup_buttons = [
             Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_fire_action, "제거", bg_color=config.BLUE),
-            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), close_trash_popup, "취소", bg_color=config.RED)
+            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), cancel_popup_action, "취소", bg_color=config.RED)
         ]
     elif State.trash_throwout_popup_requested:
         State.trash_popup_buttons = [
             Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_trash_action, "제거", bg_color=config.BLUE),
-            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), close_trash_popup, "취소", bg_color=config.RED)
+            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), cancel_popup_action, "취소", bg_color=config.RED)
         ]
 
 def draw_buttons(screen, buttons):
@@ -106,7 +111,7 @@ def draw_buttons(screen, buttons):
 def draw_game(screen):
     pygame.mouse.set_visible(not tree_editor.planting_mode)
     screen.fill(config.SKY)
-
+    global show_no_money_text, no_money_start_time
     if State.is_manual_open:
         screen.blit(UIs["manual_screen"], (0, 0))
         return
@@ -116,6 +121,18 @@ def draw_game(screen):
         tilemap_drawer.draw_tilemap(screen) # 타일 맵 그리기
         trash_editor.draw_trash_count(screen, trash_editor.trash_count) # 쓰레기 개수 출력
         land_editor.draw_editing_text(screen) # 땅 확장 기능 사용중인지 출력
+        if State.show_no_money_text:
+            elapsed = time.time() - State.show_no_money_time
+            if elapsed < 0.75:
+                land_editor.draw_no_money_text(screen)
+            else:
+                State.show_no_money_text = False
+        if State.show_success_money_text:
+            elapsed = time.time() - State.show_success_money_time
+            if elapsed < 0.75:
+                land_editor.draw_success_text(screen)
+            else :
+                State.show_success_money_text = False
         tree_editor.draw_editing_text(screen) # 나무 심기 기능 사용중인지 출력
         tree_editor.draw_tree_preview(screen) # 나무 심기 전 투명하게 보이도록
         tilemap_drawer.draw_tile_objects(screen, tilemap_drawer.tile_objects, tilemap_drawer.tiles) # 타일 맵 위 오브젝트 그리기
