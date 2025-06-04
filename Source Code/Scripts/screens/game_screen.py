@@ -91,12 +91,12 @@ def create_popup_buttons(popup_rect):
     elif State.fire_putout_popup_requested:
         State.fire_popup_buttons = [
             Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_fire_action, "제거", bg_color=config.BLUE),
-            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), cancel_popup_action, "취소", bg_color=config.RED)
+            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), close_trash_popup, "취소", bg_color=config.RED)
         ]
     elif State.trash_throwout_popup_requested:
         State.trash_popup_buttons = [
             Button((popup_rect.left + 20, popup_rect.bottom - 125, 180, 60), remove_trash_action, "제거", bg_color=config.BLUE),
-            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), cancel_popup_action, "취소", bg_color=config.RED)
+            Button((popup_rect.left + 335, popup_rect.bottom - 125, 180, 60), close_trash_popup, "취소", bg_color=config.RED)
         ]
 
 def draw_buttons(screen, buttons):
