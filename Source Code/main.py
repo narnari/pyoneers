@@ -26,7 +26,7 @@ def main():
         if state == "title":
             result = title_screen.run_title(screen)
             if result == "start":
-                if save_editor.file_load_tutorial() == "0":
+                if tutorial_screen.tutorial_complete == "0":
                     tutorial_screen.run_tutorial(screen)
                     state = "game"
                 else:
