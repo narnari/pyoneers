@@ -125,7 +125,7 @@ def draw_game(screen):
         tilemap_drawer.draw_tilemap(screen) # 타일 맵 그리기
         trash_editor.draw_trash_count(screen, trash_editor.trash_count) # 쓰레기 개수 출력
         land_editor.draw_editing_text(screen) # 땅 확장 기능 사용중인지 출력
-        # 땅 구매 여부 출력력
+        # 땅 구매 여부 출력
         if State.show_no_land_text:
             elapsed = time.time() - State.show_no_land_time
             if elapsed < 0.75:
@@ -192,6 +192,15 @@ def remove_tree_action():
 
 def upgrade_tree_action():
     print("업그레이드 버튼 클릭됨")
+    if State.popup_position is None:
+        return
+
+    col = State.popup_position[0] // config.TILE_SIZE
+    if State.popup_type == "popup2":
+        row = (State.popup_position[1] - 392 + 330) // config.TILE_SIZE
+    else:
+        row = (State.popup_position[1] + 330) // config.TILE_SIZE
+    tree_editor.upgrade_tree_at(row, col)
     
 def remove_fire_action():
     if State.popup_position is None:
