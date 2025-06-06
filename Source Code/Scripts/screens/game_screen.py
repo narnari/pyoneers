@@ -208,6 +208,9 @@ def remove_tree_action():
     # 레벨 초기화
     resource_manager.tree_level_map[row][col] = 0
 
+    # 시간 초기화
+    resource_manager.tree_timer_map[row][col] = 1800
+
     # 생산량 갱신
     resource_manager.check_resource(tilemap_drawer.tile_objects)
     close_tree_popup()
@@ -415,6 +418,8 @@ def run_game(screen):
             return "exit"
 
         resource_manager.update_resources()
+        resource_manager.update_tree_time(tilemap_drawer.tile_objects) # 업드이트까지 필요한 시간 감소
+
         draw_game(screen)
 
         # 매뉴얼 열려있으면 뒤로가기 버튼만, 아니면 전체 버튼 그리기
