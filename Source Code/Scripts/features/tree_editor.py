@@ -4,7 +4,6 @@ from Scripts.utils import config, assets
 from Scripts.features import tilemap_drawer, resource_manager
 
 planting_mode = False
-tree_planted_time = [[None for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
 FONT = None
 
 def plant_tree(tile_map, tile_objects, mouse_pos, tile_size, selected_tree_index):
@@ -32,7 +31,9 @@ def plant_tree(tile_map, tile_objects, mouse_pos, tile_size, selected_tree_index
 
             tile_objects[row][col] = tree_index
             resource_manager.tree_level_map[row][col] = 1  # 나무 처음 심을 땐 LV.1
-            tree_planted_time[row][col] = time.time()  # 심은 시각 저장
+
+            # 업그레이드 시간 초기화
+            resource_manager.tree_timer_map[row][col] = 1800
 
             import Scripts.screens.game_screen as game_screen
             game_screen.State.show_success_tree_text = True
@@ -92,14 +93,14 @@ def draw_tree_preview(screen):
 # 나무 업그레이드
 def upgrade_tree_at(row, col):
     tile_objects = tilemap_drawer.tile_objects
-    tree_type = tile_objects[row][col]
-    if tree_type not in resource_manager.TREE_STATS:
-        print("업그레이드 실패: 나무 없음")
+    if resource_manager.tree_upgrade_time[row][col] > 0:
+        print("시간 부족 : 업그레이드 실패")
         return False
     if not resource_manager.can_spend(oxy=2000, money=3000):
         print("자원 부족: 업그레이드 실패")
         return False
     resource_manager.tree_level_map[row][col] += 1
+    resource_manager.tree_upgrade_time[row][col] = 1800 # 업그레이드 성공 시 시간 초기화
     print(f"[업그레이드] ({row},{col}) 나무 레벨 → {resource_manager.tree_level_map[row][col]}")
     resource_manager.check_resource(tile_objects)
     return True
@@ -114,19 +115,12 @@ def draw_popup_tree_info(screen, popup_pos, popup_type):
 
     font = assets.load_font("Jalnan.ttf", 27)
     obj = tilemap_drawer.tile_objects[row][col]
-    planted_time = tree_planted_time[row][col]
-    now = time.time()
-
-    if planted_time is None:
-        upgrade_text = font.render("심은 시간 없음", True, config.BLACK)
+    upgrade_time = resource_manager.tree_upgrade_time[row][col]
+    if upgrade_time <= 0:
+        upgrade_text = font.render("업그레이드 가능!", True, config.BLACK)
     else:
-        elapsed = now - planted_time
-        if elapsed >= 900:
-            upgrade_text = font.render("업그레이드 가능!", True, config.BLACK)
-        else:
-            remain = int(900 - elapsed)
-            m, s = remain // 60, remain % 60
-            upgrade_text = font.render(f"{m:02d}분 {s:02d}초", True, config.BLACK)
+        m, s = upgrade_time // 60, upgrade_time % 60
+        upgrade_text = font.render(f"{m:02d}분 {s:02d}초", True, config.BLACK)
 
     level = resource_manager.tree_level_map[row][col]
     oxy = int(resource_manager.TREE_STATS[obj]['oxygen'] * (2.5 ** (level - 1)))
