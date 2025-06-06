@@ -3,6 +3,9 @@ from Scripts.features import save_editor
 import time
 import math
 
+# 레벨 저장용 (처음에 다 1 레벨)
+tree_level_map = [[1 for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
+
 
 # 인덱스 ↔ 이름 매핑
 TREE_NAME = {
@@ -12,7 +15,7 @@ TREE_NAME = {
     6: "상수리나무"
 }
 
-# 나무 종류별 생산량 정보
+# 나무 종류별 생산량 기본 정보
 TREE_STATS = {
     3: {"oxygen": 15, "money": 2},
     4: {"oxygen": 12, "money": 8},
@@ -90,15 +93,17 @@ def check_resource(tile_objects):
             obj = tile_objects[row][col]
             if obj in TREE_STATS:
                 tree_counts[obj] += 1
-                oxy = TREE_STATS[obj]["oxygen"]
-                money = TREE_STATS[obj]["money"]
+                base_oxy = TREE_STATS[obj]["oxygen"]
+                base_money = TREE_STATS[obj]["money"]
+                 # 레벨이 오를수록 2.5배씩 증가
+                oxy = int(base_oxy * (2.5 ** (tree_level_map[row][col] - 1)))
+                money = int(base_money * (2.5 ** (tree_level_map[row][col] - 1)))
                 generate(oxy, money)
 
 def get_tree_cost(tree_index):
     count = tree_counts.get(tree_index, 0)
     base_cost = TREE_COST_INFO.get(tree_index, 0)
     return int((count + 1) ** 1.5 * base_cost) # 1.5배로 증가, 난이도 조절 위함
-    #return int(math.sqrt(count + 1) * base_cost) # count + 1 인 이유는 처음 심을 때도 돈 쓰게 하기 위함
 
 
 def draw_resources(screen):
