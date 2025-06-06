@@ -4,6 +4,7 @@ import time
 last_save_time = time.time()
 
 def file_save(money, oxy, ground, objects, ground_count, tutorial, tree_up_time, tree_level):  # money, oxygen, ground를 각각 str, str, 2D list로 받아 파일에 저장
+    
     with open("About Game/save.txt", "w") as f:
         f.write(f"{money}\n")
         f.write(f"{oxy}\n")
@@ -18,16 +19,18 @@ def file_save(money, oxy, ground, objects, ground_count, tutorial, tree_up_time,
                 flat_objects.append(str(objects[row][col]))
                 flat_tree_up_time.append(str(tree_up_time[row][col]))
                 flat_tree_level.append(str(tree_level[row][col]))
-
+                
         f.write(' '.join(flat_ground))
         f.write("\n")
         f.write(' '.join(flat_objects))
         f.write("\n")
         #트리 레벨과 업그레이드 타임도 게임 내에선 2차원 리스트로 사용되는데, 저장은 1차원 리스트로 바꿔서 함.
         f.write(f"{ground_count}\n")
-        f.write(f"{tutorial}")
+        f.write(f"{tutorial}\n")
         f.write(' '.join(flat_tree_up_time))
+        f.write('\n')
         f.write(' '.join(flat_tree_level))
+        f.write('\n')
 
 def auto_save(money, oxy, ground, objects, ground_count, tutorial, tree_up_time, tree_level, interval):
     global last_save_time
@@ -58,23 +61,20 @@ def file_load_resource():                   #자원만 불러오기
         oxy = int(oxy)
         return money, oxy
 
-def file_load_tree_up_time():  # 나무 업그레이드 남은시간만 반환
+def file_load_time_level():  # 나무 업그레이드 남은시간과 레벨 반환
     with open("About Game/save.txt", "r") as f:
         for i in range(6):
            f.readline()
-        temp = f.read().strip()
-        temp = list(map(int, temp.split()))
-        tree_up_time = [temp[i * 20:(i + 1) * 20] for i in range(11)]
-        return tree_up_time
-
-def file_load_tree_level():     #나무 레벨만 반환
-    with open("About Game/save.txt", "r") as f:
-        for i in range(7):
-            f.readline()
         temp = f.readline().strip()
         temp = list(map(int, temp.split()))
-        tree_level = [temp[i * 20: (i + 1) * 20] for i in range(11)]
-        return tree_level
+        tree_up_time = [temp[i * 20:(i + 1) * 20] for i in range(11)]
+        
+        temp2 = f.readline().strip()
+        temp2 = list(map(int, temp2.split()))
+        tree_level = [temp2[i * 20: (i + 1) * 20] for i in range(11)]
+        return tree_up_time, tree_level
+
+
 
 def file_load_ground_counts():
     with open("About Game/save.txt", "r") as f:

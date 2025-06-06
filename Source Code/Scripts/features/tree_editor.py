@@ -33,7 +33,7 @@ def plant_tree(tile_map, tile_objects, mouse_pos, tile_size, selected_tree_index
             resource_manager.tree_level_map[row][col] = 1  # 나무 처음 심을 땐 LV.1
 
             # 업그레이드 시간 초기화
-            resource_manager.tree_timer_map[row][col] = 1800
+            resource_manager.tree_upgrade_time[row][col] = 1800
 
             import Scripts.screens.game_screen as game_screen
             game_screen.State.show_success_tree_text = True

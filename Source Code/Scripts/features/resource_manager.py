@@ -2,9 +2,19 @@ from Scripts.utils import config, assets
 from Scripts.features import save_editor
 import time
 
+HOFF = config.OFFSET_HEIGHT
+WOFF = config.OFFSET_WIDTH
+
 # 레벨 저장용 (처음에 다 1 레벨)
 tree_level_map = [[1 for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
 tree_upgrade_time = [[1800 for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
+
+
+uptemp, leveltemp = save_editor.file_load_time_level()
+for row in range(config.HEIGHT_SIZE):
+    for col in range(config.WIDTH_SIZE):
+        tree_upgrade_time[row + HOFF][col + WOFF] = uptemp[row][col]
+        tree_level_map[row + HOFF][col + WOFF] = leveltemp[row][col]
 last_update_time = time.time()
 
 

@@ -37,7 +37,9 @@ def main():
                     resource_manager.resources["stored_oxygen"], 
                     tilemap_drawer.tile_map, tilemap_drawer.tile_objects, 
                     resource_manager.land_count,
-                    tutorial_screen.tutorial_complete)
+                    tutorial_screen.tutorial_complete,
+                    resource_manager.tree_upgrade_time,
+                    resource_manager.tree_level_map)
                 running = False
             elif result == "setting":
                 setting_screen.back_state = "title"
@@ -47,7 +49,11 @@ def main():
             save_editor.auto_save(
                 resource_manager.resources["stored_money"], 
                 resource_manager.resources["stored_oxygen"], 
-                tilemap_drawer.tile_map, tilemap_drawer.tile_objects, 
+                tilemap_drawer.tile_map, tilemap_drawer.tile_objects,
+                resource_manager.land_count,
+                tutorial_screen.tutorial_complete,
+                resource_manager.tree_upgrade_time,
+                resource_manager.tree_level_map,
                 config.AUTO_SAVE_INTERVAL)
             
             result = game_screen.run_game(screen)
