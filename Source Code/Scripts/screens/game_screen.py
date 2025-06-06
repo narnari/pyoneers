@@ -188,6 +188,29 @@ def request_setting():
     State.setting_requested = True
 
 def remove_tree_action():
+    
+    if State.popup_position is None:
+        return
+    
+    if State.popup_position is None:
+        return
+
+    col = State.popup_position[0] // config.TILE_SIZE
+    if State.popup_type == "popup2":
+        row = (State.popup_position[1] - 392 + 330) // config.TILE_SIZE
+    else:
+        row = (State.popup_position[1] + 330) // config.TILE_SIZE
+
+    tilemap_drawer.tile_objects[row][col] = 0
+    # 심은 시간 초기화
+    tree_editor.tree_planted_time[row][col] = None
+
+    # 레벨 초기화
+    resource_manager.tree_level_map[row][col] = 0
+
+    # 생산량 갱신
+    resource_manager.check_resource(tilemap_drawer.tile_objects)
+    close_tree_popup()
     print("제거 버튼 클릭됨")
 
 def upgrade_tree_action():
