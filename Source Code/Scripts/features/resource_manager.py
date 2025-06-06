@@ -1,10 +1,11 @@
 from Scripts.utils import config, assets
 from Scripts.features import save_editor
 import time
-import math
 
 # 레벨 저장용 (처음에 다 1 레벨)
 tree_level_map = [[1 for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
+tree_upgrade_time = [[1800 for _ in range(config.GRID_WIDTH)] for _ in range(config.GRID_HEIGHT)]
+last_update_time = time.time()
 
 
 # 인덱스 ↔ 이름 매핑
@@ -71,6 +72,17 @@ def update_resources():
         resources["stored_money"] += resources["produce_money"] * seconds
         resources["last_update_time"] += seconds
 
+def update_tree_time(tile_objects):
+    global last_update_time
+    now = time.time()
+    elapsed = now - last_update_time
+    if elapsed >= 1: # 1초씩 시간 감소
+        for row in range(config.GRID_HEIGHT):
+            for col in range(config.GRID_WIDTH):
+                if tile_objects[row][col] in TREE_STATS:
+                    if tree_upgrade_time[row][col] > 0:
+                        tree_upgrade_time[row][col] -= 1
+        last_update_time = now # 마지막 시간 갱신
 
 def can_spend(oxy=0, money=0):
     # 자원 부족하면 False 반환
