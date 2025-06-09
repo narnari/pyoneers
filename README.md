@@ -1,4 +1,4 @@
-구현 정도 (90%)
+구현 정도 (100%) - 데모 버전 완성
 # 🌱 TERRABLOOM
 
 **TEAM: PYONEERS**  
